@@ -5,7 +5,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv()
 
 class Config:
-    # API Fairy 
+    # API documentation 
     APIFAIRY_TITLE = 'Prizebond API'
     APIFAIRY_VERSION = '1.0'
     APIFAIRY_UI = 'elements'
@@ -16,11 +16,11 @@ class Config:
     # Marshmallow
     JSON_SORT_KEYS = False
    
-    # Flask
+    # Flask options
     SECRET_KEY = os.getenv("SECRET_KEY", "topSecret!") 
     UPLOAD_FOLDER = './api/static/user/avatars'
     
-    # Database
+    # Database configuration
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -32,3 +32,8 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER=os.environ.get('MAIL_DEFAULT_SENDER',
                                        'donotreply@fastbond.example.com')
+                                       
+    # Token configuration 
+    ACCESS_TOKEN_MINUTES = int(os.environ.get('ACCESS_TOKEN_MINUTES') or '15')
+    REFRESH_TOKEN_DAYS = int(os.environ.get('REFRESH_TOKEN_DAYS') or '7')
+    REFRESH_TOKEN_IN_COOKIE = as_bool(os.environ.get('REFRESH_TOKEN_IN_COOKIE') or 'yes')
