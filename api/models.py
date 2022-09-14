@@ -5,6 +5,116 @@ import jwt
 import secrets
 from flask import current_app as app
 
+userbond = db.Table("userbond",
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), primary_key=True, nullable=False),
+    db.Column('bond_id', db.Integer, db.ForeignKey('bond.id', ondelete="RESTRICT"), primary_key=True, nullable=False)
+)
+
+class Bond(db.Model):
+    __tablename__ = 'bond'
+    __table_args__ = (
+        db.UniqueConstraint('denomination_id', 'serial', name="unique_bond"),
+    )
+    id = db.Column(db.Integer, primary_key=True)
+    denomination_id = db.Column(db.Integer, db.ForeignKey('denomination.id', ondelete='RESTRICT'), nullable=False)
+    serial = db.Column(db.String(6), nullable=False)
+    winning_bond = db.relationship("WinningBond", backref="bonds", lazy=True)
+    
+    def __repr__(self):
+            return f"{self.serial}"
+        
+    def get_users(self):
+        return self.user.all()
+    
+    def is_bond_holder(self, user):
+        return self.user.filter(userbond.c.user_id == user.id).count() > 0
+
+class Denomination(db.Model):
+    __tablename__ = 'denomination'
+    id = db.Column(db.Integer, primary_key=True)
+    price = db.Column(db.Integer, index=True, unique=True, nullable=False)
+    prize = db.relationship("Prize", backref="price", lazy=True)
+    bonds = db.relationship("Bond", backref="price", lazy=True)
+    updated_lists = db.relationship("UpdatedLists", backref="price", lazy=True)
+    drawdate = db.relationship("DrawDate", backref="price", lazy=True)
+
+    def __repr__(self):
+        return f"{self.price}"
+
+class Prize(db.Model):
+    __tablename__ = 'prize'
+    __table_args__ = (
+        db.UniqueConstraint("denomination_id", "prize", name="unique_prize"),
+    )
+    id = db.Column(db.Integer, primary_key=True)
+    denomination_id = db.Column(db.Integer, db.ForeignKey('denomination.id', ondelete='CASCADE'), nullable=False)
+    prize = db.Column(db.Integer, index=True, nullable=False, unique=True)    
+    position = db.Column(db.Integer, nullable=False, index=True)
+    winning_bond = db.relationship("WinningBond", backref="prize", lazy=True)
+
+    def __repr__(self):
+        return f"{self.prize}"
+
+class DrawDate(db.Model):
+    __tablename__ = 'drawdate'
+    __table_args__ = (
+    db.UniqueConstraint('date', 'denomination_id', name="unique_drawdate"),
+)
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False, index=True)
+    denomination_id = db.Column(db.Integer, db.ForeignKey("denomination.id", ondelete="CASCADE"), nullable=False)
+    winningbond = db.relationship("WinningBond", backref="date", lazy=True)
+    updated_lists = db.relationship("UpdatedLists", backref="date", lazy=True)
+
+    def __repr__(self):
+        return f"{self.date}"
+
+class UpdatedLists(db.Model):
+    __tablename__ = "updatedlists"
+    __table_args__ = (
+    db.UniqueConstraint('date_id', 'denomination_id', name="unique_bond_list"),
+)
+    id = db.Column(db.Integer, primary_key=True)
+    date_id = db.Column(db.Integer, db.ForeignKey("drawdate.id", ondelete="CASCADE"), nullable=False)
+    denomination_id = db.Column(db.Integer, db.ForeignKey("denomination.id", ondelete="CASCADE"), nullable=False)
+    uploaded = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return f"{self.date_id} {self.denomination_id}" 
+
+class DrawLocation(db.Model):
+    __tablename__ = "drawlocation"
+    id = db.Column(db.Integer, primary_key=True)
+    location = db.Column(db.String(20), nullable=False, index=True, unique=True)
+    winningbond = db.relationship("WinningBond", backref="location", lazy=True)
+    
+    def __repr__(self):
+        return f"{self.location}"
+
+class DrawNumber(db.Model):
+    __tablename__ = "drawnumber"
+    id = db.Column(db.Integer, primary_key=True)
+    number = db.Column(db.Integer, nullable=False, unique=True)
+    winningbond = db.relationship("WinningBond", backref="number", lazy=True)
+    
+    def __repr__(self):
+        return f"{self.number}"
+        
+class WinningBond(db.Model):
+    __tablename__ = 'winningbond'
+    __table_args__ = (
+        db.UniqueConstraint('bond_id', 'prize_id', 'date_id', name="unique_winner"),
+    )
+    id = db.Column(db.Integer, primary_key=True)
+    bond_id = db.Column(db.Integer, db.ForeignKey('bond.id', ondelete="RESTRICT"), nullable=False)
+    prize_id = db.Column(db.Integer, db.ForeignKey('prize.id', ondelete="RESTRICT"), nullable=False)
+    date_id = db.Column(db.Integer, db.ForeignKey('drawdate.id', ondelete="RESTRICT"), nullable=False)
+    location_id = db.Column(db.Integer, db.ForeignKey("drawlocation.id", ondelete="RESTRICT"), nullable=False)
+    draw_id = db.Column(db.Integer, db.ForeignKey("drawnumber.id", ondelete="RESTRICT"), nullable=False)
+
+    def __repr__(self):
+            return f"BondId: {self.bond_id} PrizeId: {self.prize_id} Date: {self.date}"   
+
 class Token(db.Model):
     __tablename__ = 'tokens'
     id = db.Column(db.Integer, primary_key=True)
@@ -38,11 +148,11 @@ class Token(db.Model):
 class Role(db.Model):
     __tablename__ = "role"
     id = db.Column(db.Integer, primary_key=True)
-    role_name = db.Column(db.String(20), index=True, unique=True, default="user", nullable=False)
+    name = db.Column(db.String(20), index=True, unique=True, default="user", nullable=False)
     user = db.relationship("User", backref="role", lazy=True) 
 
     def __repr__(self):
-        return f"{self.role_name}"
+        return f"{self.name}"
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -54,12 +164,35 @@ class User(db.Model):
     confirmed = db.Column(db.Boolean, default=False, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey("role.id"), nullable=False)
     token = db.relationship("Token", backref="user", lazy=True)
+    bonds = db.relationship(
+        "Bond", secondary=userbond,
+        primaryjoin=(userbond.c.user_id == id),
+        secondaryjoin=(userbond.c.bond_id == Bond.id),
+        backref=db.backref("user", lazy='dynamic'), lazy='dynamic', cascade="all, delete")
+    
+    def __repr__(self):
+        return f"Name: {self.name} Email: {self.email}"
+    
+    def add_bond(self, bond):
+        self.bonds.append(bond)
+    
+    def remove_bond(self, bond):
+        self.bonds.remove(bond)
+    
+    @property
+    def bonds(self):
+        return self.bonds.all()
 
     @staticmethod
     def get_user(id):
         return User.query.get(id)
 
-    def set_password(self, plain_password):
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
+
+    @password.setter
+    def password(self, plain_password):
         self.password = self.generate_hashed_password(plain_password)
     
     @staticmethod
@@ -96,12 +229,12 @@ class User(db.Model):
     def revoke_all(self):
         db.session.remove(Token.query.filter_by(user=self))
     
-    def encode_auth_token(self, user_id):
+    def encode_reset_token(self):
         try:
             payload = {
                 "exp": datetime.utcnow() + timedelta(days=0, seconds=3600),
                 "iat": datetime().utcnow(),
-                "sub": user_id
+                "reset_email": self.email 
             }
 
             return jwt.encode(
@@ -113,14 +246,12 @@ class User(db.Model):
             return e
     
     @staticmethod
-    def decode_auth_token(auth_token):
+    def decode_reset_token(auth_token):
         try:
-            payload = jwt.decode(auth_token, app.config.get("SECRET_KEY"))
-            return payload["sub"]
+            payload = jwt.decode(auth_token, app.config.get("SECRET_KEY"), algorithms=['HS256'])
+            email = payload["reset_email"]
+            return User.query.filter_by(email=email).first()
         except jwt.ExpiredSignatureError:
             return "Signature Expired"
         except jwt.InvalidTokenError:
             return "Invalid token"
-
-    def __repr__(self):
-        return f"{self.name}, {self.email}"
