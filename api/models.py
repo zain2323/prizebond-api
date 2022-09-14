@@ -3,6 +3,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime, timedelta
 import jwt
 import secrets
+from flask import current_app as app
 
 class Token(db.Model):
     __tablename__ = 'tokens'
@@ -43,7 +44,8 @@ class User(db.Model):
     registered_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     confirmed = db.Column(db.Boolean, default=False, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey("role.id"), nullable=False)
-    
+    token = db.relationship("Token", backref="user", lazy=True)
+
     @staticmethod
     def get_user(id):
         return User.query.get(id)
