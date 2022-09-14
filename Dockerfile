@@ -1,0 +1,23 @@
+FROM python:3.10-slim-buster
+
+RUN useradd prizebond
+
+RUN mkdir -p /home/prizebond/prizebond-api
+WORKDIR /home/prizebond/prizebond-api
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Copy the project files
+COPY . . 
+
+RUN python -m venv venv 
+RUN apt-get update \
+    && apt-get -y install libpq-dev gcc \
+    && pip install psycopg2
+RUN venv/bin/pip install -r requirements.txt
+ENV FLASK_APP=app.py\
+    FLASK_ENV=development
+EXPOSE 5000
+CMD ["venv/bin/flask", "run", "--host=0.0.0.0"]

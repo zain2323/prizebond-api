@@ -1,0 +1,25 @@
+services:
+  doctorlyapi:
+    image: prizebond:latest
+    ports:
+      - 5000:5000
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_DEBUG=development
+      - DATABASE_URL=postgresql://prizebonduser:password@postgresdb:5432/prizebonddb
+      - SECRET_KEY=dd71c697dbff4274c359c1cf961043b322ebcc7036eab413c9a8620a73efde25
+    depends_on:
+      - postgresdb
+  postgresdb:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=prizebonduser
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=prizebonddb
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+volumes:
+  postgresql-data:
+    driver: local
