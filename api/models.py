@@ -35,6 +35,15 @@ class Token(db.Model):
     def __repr__(self):
         return f"Access Token: {self.access_token}"
 
+class Role(db.Model):
+    __tablename__ = "role"
+    id = db.Column(db.Integer, primary_key=True)
+    role_name = db.Column(db.String(20), index=True, unique=True, default="user", nullable=False)
+    user = db.relationship("User", backref="role", lazy=True) 
+
+    def __repr__(self):
+        return f"{self.role_name}"
+
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True, nullable=False)

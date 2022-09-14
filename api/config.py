@@ -32,8 +32,8 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER=os.environ.get('MAIL_DEFAULT_SENDER',
                                        'donotreply@fastbond.example.com')
-                                       
+
     # Token configuration 
     ACCESS_TOKEN_MINUTES = int(os.environ.get('ACCESS_TOKEN_MINUTES') or '15')
     REFRESH_TOKEN_DAYS = int(os.environ.get('REFRESH_TOKEN_DAYS') or '7')
-    REFRESH_TOKEN_IN_COOKIE = as_bool(os.environ.get('REFRESH_TOKEN_IN_COOKIE') or 'yes')
+    REFRESH_TOKEN_IN_COOKIE = os.environ.get('REFRESH_TOKEN_IN_COOKIE') or 'yes'

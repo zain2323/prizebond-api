@@ -1,5 +1,6 @@
 from flask import redirect, url_for
 from api import create_app
+from api.models import *
 
 app = create_app()
 
