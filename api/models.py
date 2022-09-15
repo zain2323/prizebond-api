@@ -10,6 +10,7 @@ userbond = db.Table("userbond",
     db.Column('bond_id', db.Integer, db.ForeignKey('bond.id', ondelete="RESTRICT"), primary_key=True, nullable=False)
 )
 
+
 class Bond(db.Model):
     __tablename__ = 'bond'
     __table_args__ = (
@@ -19,15 +20,16 @@ class Bond(db.Model):
     denomination_id = db.Column(db.Integer, db.ForeignKey('denomination.id', ondelete='RESTRICT'), nullable=False)
     serial = db.Column(db.String(6), nullable=False)
     winning_bond = db.relationship("WinningBond", backref="bonds", lazy=True)
-    
+
     def __repr__(self):
-            return f"{self.serial}"
-        
+        return f"{self.serial}"
+    
     def get_users(self):
         return self.user.all()
     
     def is_bond_holder(self, user):
         return self.user.filter(userbond.c.user_id == user.id).count() > 0
+
 
 class Denomination(db.Model):
     __tablename__ = 'denomination'
@@ -40,6 +42,7 @@ class Denomination(db.Model):
 
     def __repr__(self):
         return f"{self.price}"
+
 
 class Prize(db.Model):
     __tablename__ = 'prize'
@@ -55,6 +58,7 @@ class Prize(db.Model):
     def __repr__(self):
         return f"{self.prize}"
 
+
 class DrawDate(db.Model):
     __tablename__ = 'drawdate'
     __table_args__ = (
@@ -69,6 +73,7 @@ class DrawDate(db.Model):
     def __repr__(self):
         return f"{self.date}"
 
+
 class UpdatedLists(db.Model):
     __tablename__ = "updatedlists"
     __table_args__ = (
@@ -82,6 +87,7 @@ class UpdatedLists(db.Model):
     def __repr__(self):
         return f"{self.date_id} {self.denomination_id}" 
 
+
 class DrawLocation(db.Model):
     __tablename__ = "drawlocation"
     id = db.Column(db.Integer, primary_key=True)
@@ -90,6 +96,7 @@ class DrawLocation(db.Model):
     
     def __repr__(self):
         return f"{self.location}"
+
 
 class DrawNumber(db.Model):
     __tablename__ = "drawnumber"
@@ -100,6 +107,7 @@ class DrawNumber(db.Model):
     def __repr__(self):
         return f"{self.number}"
         
+
 class WinningBond(db.Model):
     __tablename__ = 'winningbond'
     __table_args__ = (
@@ -115,6 +123,7 @@ class WinningBond(db.Model):
     def __repr__(self):
             return f"BondId: {self.bond_id} PrizeId: {self.prize_id} Date: {self.date}"   
 
+
 class Token(db.Model):
     __tablename__ = 'tokens'
     id = db.Column(db.Integer, primary_key=True)
@@ -123,27 +132,33 @@ class Token(db.Model):
     refresh_token = db.Column(db.String(64), nullable=False, index=True)
     refresh_expiration = db.Column(db.DateTime, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
-
+    
     def generate(self):
         self.access_token = secrets.token_urlsafe()
         self.access_expiration = datetime.utcnow() \
             + timedelta(minutes=app.config.get("ACCESS_TOKEN_MINUTES"))
         self.refresh_token = secrets.token_urlsafe()
         self.refresh_expiration = datetime.utcnow() \
-            + timedelta(days=app.config.get("ACCESS_TOKEN_DAYS"))
+            + timedelta(days=app.config.get("REFRESH_TOKEN_DAYS"))
     
-    def expire(self):
+    def _expire(self):
         self.access_expiration = datetime.utcnow()
         self.refresh_expiration = datetime.utcnow()
     
     @staticmethod
+    def expire(tokens):
+        for token in tokens:
+            token._expire()
+
+    @staticmethod
     def clean():
         """Remove any tokens that have been expired for more than a day"""
         yesterday = datetime.utcnow() - timedelta(days=1)
-        db.session.remove(Token.query.filter_by(refresh_expiration < yesterday))
-    
+        Token.query.filter(Token.refresh_expiration < yesterday).delete()
+
     def __repr__(self):
         return f"Access Token: {self.access_token}"
+
 
 class Role(db.Model):
     __tablename__ = "role"
@@ -154,15 +169,16 @@ class Role(db.Model):
     def __repr__(self):
         return f"{self.name}"
 
+
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     name = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    password = db.Column(db.String(102), nullable=False)
+    password_hash = db.Column(db.String(102), nullable=False)
     registered_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     confirmed = db.Column(db.Boolean, default=False, nullable=False)
-    role_id = db.Column(db.Integer, db.ForeignKey("role.id"), nullable=False)
+    role_id = db.Column(db.Integer, db.ForeignKey("role.id"), nullable=False, default=2)
     token = db.relationship("Token", backref="user", lazy=True)
     bonds = db.relationship(
         "Bond", secondary=userbond,
@@ -193,14 +209,10 @@ class User(db.Model):
 
     @password.setter
     def password(self, plain_password):
-        self.password = self.generate_hashed_password(plain_password)
+        self.password_hash = generate_password_hash(plain_password)
     
-    @staticmethod
-    def generate_hashed_password(plain_password):
-        return generate_password_hash(plain_password)
-
-    def verify_password(self,plain_password):
-        return check_password_hash(self.password, plain_password)
+    def verify_password(self, plain_password):
+        return check_password_hash(self.password_hash, plain_password)
 
     def generate_auth_token(self):
         token = Token(user=self)
@@ -209,7 +221,7 @@ class User(db.Model):
 
     @staticmethod
     def verify_access_token(token):
-        user = User.query.filter_by(token=token).first()
+        token = Token.query.filter_by(access_token=token).first()
         if token:
             if token.access_expiration > datetime.utcnow():
                 return token.user

@@ -2,15 +2,14 @@ from flask import Flask, url_for, redirect, request
 from apifairy import APIFairy
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
-from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
 from flask_migrate import Migrate
+from flask_cors import CORS
 from api.config import Config
 
 api_fairy = APIFairy()
 db = SQLAlchemy()
 ma = Marshmallow()
-basic_auth = HTTPBasicAuth()
-token_auth = HTTPTokenAuth()
+cors = CORS()
 migrate = Migrate()
 
 def create_app(config=Config):
@@ -21,10 +20,18 @@ def create_app(config=Config):
     return app
 
 def initialize_extensions(app):
-    api_fairy.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
+    ma.init_app(app)
+    if app.config.get("USER_CORS"):
+        CORS.init_app(app)
+    api_fairy.init_app(app)
 
 def register_blueprints(app):
+    from api.auth import auth
     from api.user import user
+    from api.commands import commands
+
+    app.register_blueprint(auth)
     app.register_blueprint(user)
+    app.register_blueprint(commands)
