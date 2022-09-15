@@ -6,6 +6,7 @@ from api import db
 from api.auth.schema import TokenSchema, EmptySchema
 from flask import abort
 
+
 @auth.post("/get_tokens")
 @authenticate(basic_auth)
 @response(TokenSchema)
@@ -15,7 +16,7 @@ def new():
     user = basic_auth.current_user()
     token = user.generate_auth_token()
     db.session.add(token)
-    Token.clean()   
+    Token.clean()
     db.session.commit()
     return token
 
