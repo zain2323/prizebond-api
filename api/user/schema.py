@@ -20,7 +20,7 @@ class UserSchema(ma.Schema):
     def validate_email(self, value):
         user = User.query.filter_by(email=value).first()
         if user is not None:
-            return ValidationError("This email is already in use")
+            raise ValidationError("This email is already in use")
 
     @validates("name")
     def validate_name(self, value):

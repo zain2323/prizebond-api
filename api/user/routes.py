@@ -4,6 +4,8 @@ from apifairy import authenticate, body, response
 from api import db
 from api.user.schema import UserSchema
 from api.auth.authentication import token_auth
+from typing import Annotated
+
 
 @user.post("/users")
 @body(UserSchema)
@@ -22,3 +24,11 @@ def new(args):
 def all():
     """Retrieve all users"""
     return User.query.all()
+
+
+@user.get("/user/<int:id>")
+@authenticate(token_auth)
+@response(UserSchema)
+def get(id: Annotated[int, 'The id of the user to retrieve.']):
+    """Retrieve user by id"""
+    return User.query.get(id)

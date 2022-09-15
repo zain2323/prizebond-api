@@ -7,7 +7,7 @@ from api.auth.schema import TokenSchema, EmptySchema
 from flask import abort
 
 
-@auth.post("/get_tokens")
+@auth.post("/tokens")
 @authenticate(basic_auth)
 @response(TokenSchema)
 @other_responses({401: 'Invalid username or password'})

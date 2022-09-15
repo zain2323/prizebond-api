@@ -26,15 +26,17 @@ def initialize_extensions(app):
     migrate.init_app(app, db)
     ma.init_app(app)
     if app.config.get("USER_CORS"):
-        CORS.init_app(app)
+        cors.init_app(app)
     api_fairy.init_app(app)
 
 
 def register_blueprints(app):
     from api.auth import auth
     from api.user import user
+    from api.bond import bond
     from api.commands import commands
 
     app.register_blueprint(auth)
     app.register_blueprint(user)
     app.register_blueprint(commands)
+    app.register_blueprint(bond)

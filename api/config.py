@@ -35,6 +35,8 @@ class Config:
                                          'donotreply@fastbond.example.com')
 
     # Token configuration
-    ACCESS_TOKEN_MINUTES = int(os.environ.get('ACCESS_TOKEN_MINUTES') or '15')
+    ACCESS_TOKEN_MINUTES = int(os.environ.get('ACCESS_TOKEN_MINUTES') or '1500')
     REFRESH_TOKEN_DAYS = int(os.environ.get('REFRESH_TOKEN_DAYS') or '7')
-    REFRESH_TOKEN_IN_COOKIE = os.environ.get('REFRESH_TOKEN_IN_COOKIE') or 'yes'
+
+    # CORS
+    USER_CORS = True

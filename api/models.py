@@ -221,8 +221,7 @@ class User(db.Model):
     def remove_bond(self, bond):
         self.bonds.remove(bond)
 
-    @property
-    def bonds(self):
+    def get_bonds(self):
         return self.bonds.all()
 
     @staticmethod
