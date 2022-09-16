@@ -1,5 +1,5 @@
 from api import ma
-from marshmallow import (fields, validate, validates, ValidationError, 
+from marshmallow import (fields, validate, validates, ValidationError,
                          post_load, validates_schema)
 from api.models import Denomination
 from api.bond.utils import remove_white_spaces
@@ -21,7 +21,7 @@ class DenominationSchema(ma.Schema):
     price = fields.Integer()
 
 
-class AddBondSchema(ma.Schema):
+class BondSchema(ma.Schema):
     class Meta:
         ordered = True
         description = "This schema represents the attributes of the bond"
@@ -56,7 +56,7 @@ class ReturnBondSchema(ma.Schema):
     price = fields.Nested(DenominationSchema)
 
 
-class AddBondRangeSchema(ma.Schema):
+class BondRangeSchema(ma.Schema):
     class Meta:
         ordered = True
         description = """This schema represents the attributes required when
@@ -94,8 +94,17 @@ class AddBondRangeSchema(ma.Schema):
         try:
             start = data["start"]
             end = data["end"]
-        except:
+        except Exception:
             raise ValidationError("Invalid serials")
 
         if start > end:
             raise ValidationError("End must be greater than start")
+
+
+class BondInfoSchema(ma.Schema):
+    class Meta:
+        ordered = True
+        description = "Represents the attributes of the BondInfo object"
+    price = fields.Integer()
+    total = fields.Integer()
+    worth = fields.Integer()
