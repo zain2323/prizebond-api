@@ -5,6 +5,7 @@ from api import db
 from api.user.schema import UserSchema
 from api.auth.authentication import token_auth
 from typing import Annotated
+from api.bond.schema import ReturnBondSchema
 
 
 @user.post("/users")
@@ -32,3 +33,11 @@ def all():
 def get(id: Annotated[int, 'The id of the user to retrieve.']):
     """Retrieve user by id"""
     return User.query.get(id)
+
+@user.get("/user/bonds")
+@authenticate(token_auth)
+@response(ReturnBondSchema(many=True))
+def bonds():
+    """Retrieve user bonds"""
+    user = token_auth.current_user()
+    return user.get_bonds()
