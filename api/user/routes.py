@@ -2,11 +2,12 @@ from api.user import user
 from api.models import User, Bond
 from apifairy import authenticate, body, response
 from api import db
-from api.user.schema import UserSchema
+from api.user.schema import UserSchema, UpdateUserSchema
 from api.user.utils import make_bond_info_response
 from api.auth.authentication import token_auth
 from typing import Annotated
 from api.bond.schema import ReturnBondSchema, BondInfoSchema
+from flask import abort
 
 
 @user.post("/users")
@@ -33,7 +34,7 @@ def all():
 @response(UserSchema)
 def get(id: Annotated[int, 'The id of the user to retrieve.']):
     """Retrieve user by id"""
-    return User.query.get(id)
+    return User.query.get(404) or abort(404)
 
 
 @user.get("/user/bonds")
@@ -58,3 +59,32 @@ def bond_info():
                             all()
     response = make_bond_info_response(denomination_ids)
     return response
+
+
+@user.get("/about")
+@authenticate(token_auth)
+@response(UserSchema)
+def me():
+    """Retrieve the authenticated user"""
+    return token_auth.current_user()
+
+
+@user.put("/about")
+@authenticate(token_auth)
+@body(UpdateUserSchema)
+@response(UserSchema)
+def put(args):
+    """Update your info"""
+    email = args.get("email")
+    password = args.get("password")
+    name = args.get("name")
+    print(name, email, password)
+    user = token_auth.current_user()
+    if email:
+        user.email = email
+    if name:
+        user.name = name
+    if password:
+        user.password = password
+    db.sesion.commit()
+    return user

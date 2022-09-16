@@ -1,6 +1,18 @@
 from api import ma
-from marshmallow import validate, validates, ValidationError, fields
+from marshmallow import (validate, ValidationError,
+                         validates_schema, fields)
 from api.models import User
+
+
+def validate_email(email):
+    user = User.query.filter_by(email=email).first()
+    if user is not None:
+        raise ValidationError("This email is already in use")
+
+
+def validate_name(name):
+    if name and not name[0].isalpha():
+        raise ValidationError("Name must start with a letter")
 
 
 class UserSchema(ma.Schema):
@@ -8,21 +20,26 @@ class UserSchema(ma.Schema):
         ordered = True
         description = "Represents the attributes of the user object"
     id = fields.Integer(dump_only=True)
-    name = fields.String(required=True, validate=[validate.Length(max=64)])
-    email = fields.Email(required=True, validate=[validate.Length(max=120),
-                         validate.Email()])
-    password = fields.String(required=True, validate=validate.Length(min=8),
-                             load_only=True)
+    name = fields.String(required=True,
+                         validate=[validate.Length(max=64), validate_name])
+    email = fields.Email(required=True,
+                         validate=[validate.Length(max=120), validate.Email(), validate_email])
+    password = fields.String(required=True,
+                             validate=validate.Length(min=8), load_only=True)
     registered_at = fields.DateTime(dump_only=True)
     confirmed = fields.Boolean(dump_only=True)
 
-    @validates("email")
-    def validate_email(self, value):
-        user = User.query.filter_by(email=value).first()
-        if user is not None:
-            raise ValidationError("This email is already in use")
 
-    @validates("name")
-    def validate_name(self, value):
-        if not value[0].isalpha():
-            raise ValidationError("Name must start with a letter")
+class UpdateUserSchema(ma.Schema):
+    class Meta:
+        ordered = True
+        description = "Represents the possible number attributes when updating the user"
+    name = fields.String(load_default=None, validate=[validate.Length(max=64), validate_name])
+    email = fields.Email(load_default=None, validate=[validate.Length(max=120),
+                                   validate.Email(), validate_email])
+    password = fields.String(load_default=None, validate=validate.Length(min=8))
+
+    @validates_schema
+    def validate_field_presence(self, data, **kwargs):
+        if not (data["name"] or data["email"] or data["password"]):
+            raise ValidationError("Not all of the fields can be None")
