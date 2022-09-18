@@ -34,7 +34,7 @@ def refresh(args):
     token = User.verify_refresh_token(refresh_token, access_token)
     if not token:
         abort(401)
-    token.expire()
+    token.expire([token])
     new_token = token.user.generate_auth_token()
     db.session.add_all([token, new_token])
     db.session.commit()

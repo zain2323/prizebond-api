@@ -25,7 +25,7 @@ def initialize_extensions(app):
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
-    if app.config.get("USER_CORS"):
+    if app.config.get("USE_CORS"):
         cors.init_app(app)
     api_fairy.init_app(app)
 

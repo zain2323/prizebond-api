@@ -254,7 +254,7 @@ class User(db.Model):
     @staticmethod
     def verify_refresh_token(refresh_token, access_token):
         token = Token.query.filter_by(
-            access_token=access_token, refresh_token=refresh_token)
+            access_token=access_token, refresh_token=refresh_token).first()
         if token:
             if token.refresh_expiration > datetime.utcnow():
                 return token
@@ -265,7 +265,8 @@ class User(db.Model):
             db.session.commit()
 
     def revoke_all(self):
-        db.session.remove(Token.query.filter_by(user=self))
+        # db.session.remove(Token.query.filter_by(user=self))
+        Token.query.filter(Token.user == self).delete()
 
     def encode_reset_token(self):
         try:

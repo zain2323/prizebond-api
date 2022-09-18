@@ -39,4 +39,4 @@ class Config:
     REFRESH_TOKEN_DAYS = int(os.environ.get('REFRESH_TOKEN_DAYS') or '7')
 
     # CORS
-    USER_CORS = True
+    USE_CORS = True
