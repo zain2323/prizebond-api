@@ -78,7 +78,6 @@ def put(args):
     email = args.get("email")
     password = args.get("password")
     name = args.get("name")
-    print(name, email, password)
     user = token_auth.current_user()
     if email:
         user.email = email

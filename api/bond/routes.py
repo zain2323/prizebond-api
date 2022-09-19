@@ -1,10 +1,23 @@
 from apifairy import authenticate, body, response, other_responses
 from api.bond import bond
 from api.auth.authentication import token_auth
-from api.bond.schema import BondSchema, ReturnBondSchema, BondRangeSchema
-from api.models import Bond
+from api.bond.schema import (BondSchema, ReturnBondSchema,
+                             BondRangeSchema, DenominationSchema)
+from api.models import Bond, Denomination
 from api import db
 from flask import abort
+
+
+def add(user, args):
+    """Helper function to add bonds"""
+    bond = Bond.query.filter_by(
+        price=args["price"], serial=args["serial"]).first()
+    if not bond:
+        bond = Bond(**args)
+        db.session.add(bond)
+    if not bond.is_bond_holder(user):
+        user.add_bond(bond)
+    return bond
 
 
 @bond.post("/bond")
@@ -14,14 +27,24 @@ from flask import abort
 def new(args):
     """Add bond"""
     user = token_auth.current_user()
-    bond = Bond.query.filter_by(price=args["price"]).first()
-    if not bond:
-        bond = Bond(**args)
-        db.session.add(bond)
-    if not bond.is_bond_holder(user):
-        user.add_bond(bond)
-        db.session.commit()
+    bond = add(user, args)
+    db.session.commit()
     return bond
+
+
+@bond.post("/bonds")
+@authenticate(token_auth)
+@body(BondSchema(many=True))
+@response(ReturnBondSchema(many=True))
+def add_bonds(args_list):
+    """Add bonds"""
+    user = token_auth.current_user()
+    bonds = []
+    for args in args_list:
+        bond = add(user, args)
+        bonds.append(bond)
+    db.session.commit()
+    return bonds
 
 
 @bond.get("/bond")
@@ -68,7 +91,6 @@ def remove(id):
         abort(403)
     user.remove_bond(bond)
     db.session.commit()
-    print("done")
     return '', 204
 
 
@@ -88,3 +110,11 @@ def remove_range(args):
             abort(403)
     db.session.commit()
     return '', 204
+
+
+@bond.get("/denominations")
+@authenticate(token_auth)
+@response(DenominationSchema(many=True))
+def denominations():
+    """Retrieve all denominations"""
+    return Denomination.query.all()

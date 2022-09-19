@@ -26,12 +26,12 @@ class BondSchema(ma.Schema):
         ordered = True
         description = "This schema represents the attributes of the bond"
     serial = fields.String(
-            required=True,
-            validate=[
-                validate.Length(equal=6,
-                                error="Serials must contain exactly 6 digits"),
-                validate_serial]
-            )
+        required=True,
+        validate=[
+            validate.Length(equal=6,
+                            error="Serials must contain exactly 6 digits"),
+            validate_serial]
+    )
     price = fields.Integer(required=True, load_only=True)
 
     @validates("price")
@@ -42,7 +42,8 @@ class BondSchema(ma.Schema):
 
     @post_load
     def wrap_denomination(self, data, **kwargs):
-        data["price"] = Denomination.query.filter_by(price=data["price"]).first()
+        data["price"] = Denomination.query.filter_by(
+            price=data["price"]).first()
         return data
 
 
@@ -65,16 +66,16 @@ class BondRangeSchema(ma.Schema):
     start = fields.String(
         required=True,
         validate=[validate.Length(
-                                equal=6,
-                                error="Serials must contain exactly 6 digits"),
-                  validate_serial]
+            equal=6,
+            error="Serials must contain exactly 6 digits"),
+            validate_serial]
     )
     end = fields.String(
         required=True,
         validate=[validate.Length(
             equal=6,
             error="Serials must contain exactly 6 digits"),
-                  validate_serial]
+            validate_serial]
     )
     price = fields.Integer()
 
@@ -86,7 +87,8 @@ class BondRangeSchema(ma.Schema):
 
     @post_load
     def wrap_denomination(self, data, **kwargs):
-        data["price"] = Denomination.query.filter_by(price=data["price"]).first()
+        data["price"] = Denomination.query.filter_by(
+            price=data["price"]).first()
         return data
 
     @validates_schema

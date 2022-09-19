@@ -35,7 +35,7 @@ class Config:
                                          'donotreply@fastbond.example.com')
 
     # Token configuration
-    ACCESS_TOKEN_MINUTES = int(os.environ.get('ACCESS_TOKEN_MINUTES') or '1500')
+    ACCESS_TOKEN_MINUTES = int(os.environ.get('ACCESS_TOKEN_MINUTES') or '15')
     REFRESH_TOKEN_DAYS = int(os.environ.get('REFRESH_TOKEN_DAYS') or '7')
 
     # CORS

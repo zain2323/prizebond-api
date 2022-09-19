@@ -265,7 +265,6 @@ class User(db.Model):
             db.session.commit()
 
     def revoke_all(self):
-        # db.session.remove(Token.query.filter_by(user=self))
         Token.query.filter(Token.user == self).delete()
 
     def encode_reset_token(self):
