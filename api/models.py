@@ -1,9 +1,11 @@
-from api import db
+from api import db, login_manager
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime, timedelta
 import jwt
 import secrets
 from flask import current_app as app
+from flask_login.mixins import UserMixin
+
 
 userbond = db.Table(
     "userbond",
@@ -25,7 +27,7 @@ class Bond(db.Model):
     denomination_id = db.Column(
         db.Integer,
         db.ForeignKey('denomination.id', ondelete='RESTRICT'), nullable=False
-        )
+    )
     serial = db.Column(db.String(6), nullable=False)
     winning_bond = db.relationship("WinningBond", backref="bonds", lazy=True)
 
@@ -61,7 +63,7 @@ class Prize(db.Model):
     denomination_id = db.Column(
         db.Integer,
         db.ForeignKey('denomination.id', ondelete='CASCADE'), nullable=False
-        )
+    )
     prize = db.Column(db.Integer, index=True, nullable=False, unique=True)
     position = db.Column(db.Integer, nullable=False, index=True)
     winning_bond = db.relationship("WinningBond", backref="prize", lazy=True)
@@ -79,7 +81,7 @@ class DrawDate(db.Model):
     denomination_id = db.Column(
         db.Integer,
         db.ForeignKey("denomination.id", ondelete="CASCADE"), nullable=False
-        )
+    )
     winningbond = db.relationship("WinningBond", backref="date", lazy=True)
     updated_lists = db.relationship("UpdatedLists", backref="date", lazy=True)
 
@@ -95,11 +97,11 @@ class UpdatedLists(db.Model):
     date_id = db.Column(
         db.Integer,
         db.ForeignKey("drawdate.id", ondelete="CASCADE"), nullable=False
-        )
+    )
     denomination_id = db.Column(
         db.Integer,
         db.ForeignKey("denomination.id", ondelete="CASCADE"), nullable=False
-        )
+    )
     uploaded = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
@@ -193,7 +195,12 @@ class Role(db.Model):
         return f"{self.name}"
 
 
-class User(db.Model):
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get_user(user_id)
+
+
+class User(db.Model, UserMixin):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     name = db.Column(db.String(64), nullable=False)

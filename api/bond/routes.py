@@ -67,7 +67,8 @@ def add_range(args):
     price = args["price"]
     bonds = []
     for serial in range(start, end+1):
-        bond = Bond.query.filter_by(price=args["price"]).first()
+        bond = Bond.query.filter_by(
+            price=args["price"], serial=str(serial)).first()
         # if bond does not exists
         if not bond:
             bond = Bond(serial=serial, price=price)
