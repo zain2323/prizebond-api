@@ -231,6 +231,9 @@ class User(db.Model, UserMixin):
     def get_bonds(self):
         return self.bonds.all()
 
+    def get_bonds_by_denomination(self, denomination):
+        return self.bonds.filter_by(price=denomination).all()
+
     @staticmethod
     def get_user(id):
         return User.query.get(id)

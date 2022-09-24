@@ -1,5 +1,5 @@
 from api.user import user
-from api.models import User, Bond
+from api.models import User, Bond, Denomination
 from apifairy import authenticate, body, response, other_responses
 from api import db
 from api.user.schema import UserSchema, UpdateUserSchema
@@ -44,6 +44,16 @@ def bonds():
     """Retrieve user bonds"""
     user = token_auth.current_user()
     return user.get_bonds()
+
+
+@user.get("/user/bonds/<int:id>")
+@authenticate(token_auth)
+@response(ReturnBondSchema(many=True))
+def bonds_by_denomination(id: Annotated[int, 'Denomination id.']):
+    """Retrieve user bonds by denomination id"""
+    user = token_auth.current_user()
+    denomination = Denomination.query.get_or_404(id)
+    return user.get_bonds_by_denomination(denomination)
 
 
 @user.get("/user/bonds/info")

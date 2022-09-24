@@ -2,10 +2,11 @@ from apifairy import authenticate, body, response, other_responses
 from api.bond import bond
 from api.auth.authentication import token_auth
 from api.bond.schema import (BondSchema, ReturnBondSchema,
-                             BondRangeSchema, DenominationSchema)
-from api.models import Bond, Denomination
+                             BondRangeSchema, DenominationSchema, DrawDateSchema)
+from api.models import Bond, Denomination, DrawDate
 from api import db
 from flask import abort
+from typing import Annotated
 
 
 def add(user, args):
@@ -119,3 +120,20 @@ def remove_range(args):
 def denominations():
     """Retrieve all denominations"""
     return Denomination.query.all()
+
+
+@bond.get("/drawdate/<int:id>")
+@authenticate(token_auth)
+@response(DrawDateSchema(many=True))
+def draw_date(id: Annotated[int, 'Denomination id.']):
+    """Retrieve draw date"""
+    price = Denomination.query.get_or_404(id)
+    return DrawDate.query.filter_by(price=price).all()
+
+# @bond.get("/search")
+# @authenticate(token_auth)
+# @body()
+# @response(ReturnBondSchema(many=True))
+# def search():
+#     """Search results"""
+#     pass

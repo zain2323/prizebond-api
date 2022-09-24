@@ -110,3 +110,11 @@ class BondInfoSchema(ma.Schema):
     price = fields.Integer()
     total = fields.Integer()
     worth = fields.Integer()
+
+
+class DrawDateSchema(ma.Schema):
+    class Meta:
+        ordered = True
+        description = "Represents the attributes of the Draw Date object"
+    id = fields.Integer(dump_only=True)
+    date = fields.Date()

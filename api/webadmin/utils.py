@@ -23,6 +23,12 @@ def load_prizes():
     return [d.prize for d in prizes]
 
 
+def load_prizes_by_price(denomination):
+    price = Denomination.query.filter_by(price=denomination).first()
+    prizes = Prize.query.filter_by(price=price).all()
+    return prizes
+
+
 def load_user_bonds(user):
     bonds = user.get_bonds()
     return [bond.serial for bond in bonds]
