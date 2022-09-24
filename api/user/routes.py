@@ -63,11 +63,7 @@ def bond_info():
     """Retrieve bonds info"""
     user = token_auth.current_user()
     bonds = user.bonds
-    denomination_ids = bonds.\
-                            with_entities(Bond.denomination_id).\
-                            distinct().\
-                            all()
-    response = make_bond_info_response(denomination_ids)
+    response = make_bond_info_response(bonds)
     return response
 
 

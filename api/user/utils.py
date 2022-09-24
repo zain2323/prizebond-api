@@ -1,12 +1,13 @@
 from api.models import Bond, Denomination
 
 
-def make_bond_info_response(denominations):
+def make_bond_info_response(bonds):
     response = []
-    for id in denominations:
+    denominations = Denomination.query.all()
+    for denomination in denominations:
         resp = {}
-        price = Denomination.query.get(id[0]).price
-        count = Bond.query.filter_by(denomination_id=id[0]).count()
+        price = denomination.price
+        count = len(bonds.filter_by(price=denomination).all())
         resp["price"] = price
         resp["total"] = count
         resp["worth"] = price * count
