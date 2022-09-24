@@ -189,7 +189,7 @@ class WinningBondView(GenericView):
         bond_prize = Prize.query.filter_by(prize=prize).first()
         # This is done to add the updated list
         bond_date = DrawDate.query.filter(func.DATE(DrawDate.date) == date) \
-            .filter_by(bond_price_id=bond_price.id).first()
+            .filter_by(denomination_id=bond_price.id).first()
         if bond_date is None:
             draw_date = DrawDate(date=date, price=bond_price)
             db.session.add(draw_date)
@@ -197,10 +197,10 @@ class WinningBondView(GenericView):
             bond_date = draw_date
 
         updated_lists = UpdatedLists.query.filter_by(
-            date_id=bond_date.id, bond_price_id=bond_price.id).first()
+            date_id=bond_date.id, denomination_id=bond_price.id).first()
         if updated_lists is None:
             bond_list = UpdatedLists(
-                date_id=bond_date.id, bond_price_id=bond_price.id)
+                date_id=bond_date.id, denomination_id=bond_price.id)
             db.session.add(bond_list)
             db.session.commit()
             updated_lists = bond_list
@@ -210,7 +210,7 @@ class WinningBondView(GenericView):
                 price=bond_price, serial=serial).first()
             if bond:
                 winning_bond = WinningBond(bonds=bond, date_id=bond_date.id,
-                                           bond_prize_id=bond_prize.id,
+                                           prize_id=bond_prize.id,
                                            location_id=bond_location.id,
                                            draw_id=bond_number.id)
                 db.session.add(winning_bond)
@@ -218,7 +218,7 @@ class WinningBondView(GenericView):
                 bond = Bond(serial=serial, price=bond_price)
                 db.session.add(bond)
                 winning_bond = WinningBond(bonds=bond, date_id=bond_date.id,
-                                           bond_prize_id=bond_prize.id,
+                                           prize_id=bond_prize.id,
                                            location_id=bond_location.id,
                                            draw_id=bond_number.id)
                 db.session.add(winning_bond)
@@ -236,7 +236,7 @@ class WinningBondView(GenericView):
 
     def get_data(self, file_name):
         data = []
-        path = Path('./PrizeBondApp/static/results/'+file_name)
+        path = Path('./api/static/results/'+file_name)
         with open(path) as file:
             for line in file:
                 data.append(line)
@@ -264,5 +264,9 @@ admin.add_view(DenominationView(
 admin.add_view(PrizeView(Prize, db.session, endpoint="prize"))
 admin.add_view(BondView(Bond, db.session, endpoint="bonds"))
 admin.add_view(WinningBondView(WinningBond, db.session))
+admin.add_view(GenericView(DrawDate, db.session, name="Date"))
+admin.add_view(GenericView(DrawLocation, db.session, name="Cities"))
+admin.add_view(GenericView(DrawNumber, db.session, name="Draw Number"))
+admin.add_view(GenericView(UpdatedLists, db.session, name="Updated Records"))
 admin.add_view(RoleView(Role, db.session))
 admin.add_view(LogoutView(name="Logout", endpoint="logout"))
