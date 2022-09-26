@@ -126,7 +126,18 @@ class WinnerSchema(ma.Schema):
         description = "Represents the attributes of the Winner object"
     serial = fields.String()
     denomination = fields.String()
+    position = fields.String()
     prize = fields.String()
     draw_date = fields.Date()
     draw_num = fields.String()
     location = fields.String()
+
+
+class LatestResultSchema(ma.Schema):
+    class Meta:
+        ordered = True
+        description = "Represents the attributes of the Latest Result object"
+    denomination = fields.String()
+    draw_date = fields.Date()
+    first = fields.String()
+    second = fields.List(fields.String())

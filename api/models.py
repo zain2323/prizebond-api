@@ -45,13 +45,22 @@ class Denomination(db.Model):
     __tablename__ = 'denomination'
     id = db.Column(db.Integer, primary_key=True)
     price = db.Column(db.Integer, index=True, unique=True, nullable=False)
-    prize = db.relationship("Prize", backref="price", lazy=True)
+    prize = db.relationship("Prize", backref="price", lazy="dynamic")
     bonds = db.relationship("Bond", backref="price", lazy=True)
     updated_lists = db.relationship("UpdatedLists", backref="price", lazy=True)
     drawdate = db.relationship("DrawDate", backref="price", lazy=True)
 
     def __repr__(self):
         return f"{self.price}"
+
+    def first(self):
+        return self.prize.filter_by(position=1).first()
+
+    def second(self):
+        return self.prize.filter_by(position=2).first()
+
+    def third(self):
+        return self.prize.filter_by(position=3).first()
 
 
 class Prize(db.Model):
@@ -82,7 +91,8 @@ class DrawDate(db.Model):
         db.Integer,
         db.ForeignKey("denomination.id", ondelete="CASCADE"), nullable=False
     )
-    winningbond = db.relationship("WinningBond", backref="date", lazy=True)
+    winningbond = db.relationship(
+        "WinningBond", backref="date", lazy="dynamic")
     updated_lists = db.relationship("UpdatedLists", backref="date", lazy=True)
 
     def __repr__(self):
@@ -104,8 +114,35 @@ class UpdatedLists(db.Model):
     )
     uploaded = db.Column(db.Boolean, default=False)
 
+    def first(self):
+        price = self.price
+        return self.date.winningbond.\
+            filter(WinningBond.prize == price.first()).first().bonds
+
+    def second(self):
+        price = self.price
+        winners = self.date.winningbond.\
+            filter(WinningBond.prize == price.second()).all()
+        return [winner.bonds for winner in winners]
+
+    def third(self):
+        price = self.price
+        winners = self.date.winningbond.\
+            filter(WinningBond.prize == price.third()).all().bonds
+        return [winner.bonds for winner in winners]
+
+    @staticmethod
+    def latest(denomination):
+        # Returns the latest listing
+        listing = UpdatedLists.query.\
+            filter_by(price=denomination, uploaded=True).all()
+        if len(listing) > 0:
+            return listing[-1]
+        else:
+            return None
+
     def __repr__(self):
-        return f"{self.date_id} {self.denomination_id}"
+        return f"Date: {self.date} Price: {self.price}"
 
 
 class DrawLocation(db.Model):
@@ -147,7 +184,8 @@ class WinningBond(db.Model):
                         ondelete="RESTRICT"), nullable=False)
 
     def __repr__(self):
-        return f"Bond id: {self.bond_id} Prize id: {self.prize_id}"
+        return f"""Bond:{self.bonds}, Prize:{self.prize}, Date:{self.date}"""
+
 
 class Token(db.Model):
     __tablename__ = 'tokens'

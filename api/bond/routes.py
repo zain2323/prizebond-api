@@ -3,11 +3,12 @@ from api.bond import bond
 from api.auth.authentication import token_auth
 from api.bond.schema import (BondSchema, ReturnBondSchema,
                              BondRangeSchema, DenominationSchema,
-                             DrawDateSchema, WinnerSchema)
-from api.models import Bond, Denomination, DrawDate, WinningBond
+                             DrawDateSchema, WinnerSchema, LatestResultSchema)
+from api.models import Bond, Denomination, DrawDate, WinningBond, UpdatedLists
 from api import db
 from flask import abort, request
 from typing import Annotated
+from api.bond.utils import make_search_response, make_latest_result_response
 
 
 def add(user, args):
@@ -132,17 +133,6 @@ def draw_date(id: Annotated[int, 'Denomination id.']):
     return DrawDate.query.filter_by(price=price).all()
 
 
-def make_search_response(winner):
-    return {
-        "serial":  winner.bonds.serial,
-        "denomination":  winner.bonds.price.price,
-        "prize":  winner.prize.prize,
-        "draw_date": winner.date.date,
-        "draw_num":  winner.number.number,
-        "location":  winner.location
-    }
-
-
 @bond.get("/search")
 @authenticate(token_auth)
 @response(WinnerSchema)
@@ -215,4 +205,28 @@ def search_by_denomination():
         for winner in winners:
             if winner:
                 response.append(make_search_response(winner))
+    return response
+
+
+@bond.get("/result")
+@response(WinnerSchema(many=True))
+def retrieveResultsList():
+    """Retrieve all of the result lists"""
+    response = []
+    winners = WinningBond.query.limit(50)
+    for winner in winners:
+        response.append(make_search_response(winner))
+    return response
+
+
+@bond.get("/winners")
+@response(LatestResultSchema(many=True))
+def retreiveLatestWinners():
+    """Retrieve latest result listings"""
+    response = []
+    denominations = Denomination.query.all()
+    for denomination in denominations:
+        listing = UpdatedLists.latest(denomination)
+        if listing:
+            response.append(make_latest_result_response(listing))
     return response
