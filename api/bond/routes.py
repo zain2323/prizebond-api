@@ -2,10 +2,11 @@ from apifairy import authenticate, body, response, other_responses
 from api.bond import bond
 from api.auth.authentication import token_auth
 from api.bond.schema import (BondSchema, ReturnBondSchema,
-                             BondRangeSchema, DenominationSchema, DrawDateSchema)
-from api.models import Bond, Denomination, DrawDate
+                             BondRangeSchema, DenominationSchema,
+                             DrawDateSchema, WinnerSchema)
+from api.models import Bond, Denomination, DrawDate, WinningBond
 from api import db
-from flask import abort
+from flask import abort, request
 from typing import Annotated
 
 
@@ -130,10 +131,71 @@ def draw_date(id: Annotated[int, 'Denomination id.']):
     price = Denomination.query.get_or_404(id)
     return DrawDate.query.filter_by(price=price).all()
 
-# @bond.get("/search")
-# @authenticate(token_auth)
-# @body()
-# @response(ReturnBondSchema(many=True))
-# def search():
-#     """Search results"""
-#     pass
+
+def make_search_response(winner):
+    return {
+        "serial":  winner.bonds.serial,
+        "denomination":  winner.bonds.price.price,
+        "prize":  winner.prize.prize,
+        "draw_date": winner.date.date,
+        "draw_num":  winner.number.number,
+        "location":  winner.location
+    }
+
+
+@bond.get("/search")
+@authenticate(token_auth)
+@response(WinnerSchema)
+def search():
+    """Check if serial is in the winning list"""
+    serial = request.args.get("serial")
+    price = request.args.get("price")
+    date = request.args.get("date")
+
+    denomination = Denomination.query.filter_by(price=price).first()
+    bond = Bond.query.filter_by(serial=serial, price=denomination).first()
+    draw_date = DrawDate.query.filter_by(date=date).first()
+    winner = WinningBond.query.filter_by(
+        bonds=bond, date=draw_date).first()
+    if winner:
+        return make_search_response(winner)
+    else:
+        return {}
+
+
+@bond.get("/search/serials")
+@authenticate(token_auth)
+@response(WinnerSchema(many=True))
+def search_all_serials():
+    """Search for results"""
+    price = request.args.get("price")
+    date = request.args.get("date")
+
+    user = token_auth.current_user()
+    denomination = Denomination.query.filter_by(price=price).first()
+    bonds = user.get_bonds_by_denomination(denomination)
+    draw_date = DrawDate.query.filter_by(date=date).first()
+
+    response = []
+    for serial in bonds:
+        winner = WinningBond.query.filter_by(
+            bonds=serial, date=draw_date).first()
+        if winner:
+            response.append(make_search_response(winner))
+    return response
+
+
+@bond.get("/search/serials/all")
+@authenticate(token_auth)
+@response(WinnerSchema(many=True))
+def search_all():
+    """Search all of your serials"""
+    user = token_auth.current_user()
+    bonds = user.get_bonds()
+    response = []
+    for serial in bonds:
+        winners = WinningBond.query.filter_by(bonds=serial).all()
+        for winner in winners:
+            if winner:
+                response.append(make_search_response(winner))
+    return response

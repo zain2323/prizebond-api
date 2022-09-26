@@ -1,4 +1,4 @@
-from api.models import Bond, Denomination
+from api.models import Denomination
 
 
 def make_bond_info_response(bonds):

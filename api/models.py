@@ -146,6 +146,8 @@ class WinningBond(db.Model):
     draw_id = db.Column(db.Integer, db.ForeignKey("drawnumber.id",
                         ondelete="RESTRICT"), nullable=False)
 
+    def __repr__(self):
+        return f"Bond id: {self.bond_id} Prize id: {self.prize_id}"
 
 class Token(db.Model):
     __tablename__ = 'tokens'

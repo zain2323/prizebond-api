@@ -118,3 +118,15 @@ class DrawDateSchema(ma.Schema):
         description = "Represents the attributes of the Draw Date object"
     id = fields.Integer(dump_only=True)
     date = fields.Date()
+
+
+class WinnerSchema(ma.Schema):
+    class Meta:
+        ordered = True
+        description = "Represents the attributes of the Winner object"
+    serial = fields.String()
+    denomination = fields.String()
+    prize = fields.String()
+    draw_date = fields.Date()
+    draw_num = fields.String()
+    location = fields.String()
