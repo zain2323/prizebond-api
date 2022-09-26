@@ -151,7 +151,6 @@ def search():
     serial = request.args.get("serial")
     price = request.args.get("price")
     date = request.args.get("date")
-
     denomination = Denomination.query.filter_by(price=price).first()
     bond = Bond.query.filter_by(serial=serial, price=denomination).first()
     draw_date = DrawDate.query.filter_by(date=date).first()
@@ -192,6 +191,24 @@ def search_all():
     """Search all of your serials"""
     user = token_auth.current_user()
     bonds = user.get_bonds()
+    response = []
+    for serial in bonds:
+        winners = WinningBond.query.filter_by(bonds=serial).all()
+        for winner in winners:
+            if winner:
+                response.append(make_search_response(winner))
+    return response
+
+
+@bond.get("/search/serials/denomination")
+@authenticate(token_auth)
+@response(WinnerSchema(many=True))
+def search_by_denomination():
+    """Search all of your serials"""
+    price = request.args.get("price")
+    user = token_auth.current_user()
+    denomination = Denomination.query.filter_by(price=price).first()
+    bonds = user.get_bonds_by_denomination(denomination)
     response = []
     for serial in bonds:
         winners = WinningBond.query.filter_by(bonds=serial).all()
