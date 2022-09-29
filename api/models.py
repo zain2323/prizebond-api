@@ -131,7 +131,6 @@ class UpdatedLists(db.Model):
             filter(WinningBond.prize == price.third()).all().bonds
         return [winner.bonds for winner in winners]
 
-
     @staticmethod
     def latest(denomination):
         # Returns the latest listing

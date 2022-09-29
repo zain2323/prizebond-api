@@ -57,9 +57,11 @@ def register_blueprints(app):
     from api.bond import bond
     from api.commands import commands
     from api.webadmin import web_admin
+    from api.errors import error
 
     app.register_blueprint(auth)
     app.register_blueprint(user)
     app.register_blueprint(commands)
     app.register_blueprint(bond)
     app.register_blueprint(web_admin, url_prefix="/adminpanel")
+    app.register_blueprint(error)
