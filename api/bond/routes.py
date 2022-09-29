@@ -117,7 +117,6 @@ def remove_range(args):
 
 
 @bond.get("/denominations")
-@authenticate(token_auth)
 @response(DenominationSchema(many=True))
 def denominations():
     """Retrieve all denominations"""
@@ -125,7 +124,6 @@ def denominations():
 
 
 @bond.get("/drawdate/<int:id>")
-@authenticate(token_auth)
 @response(DrawDateSchema(many=True))
 def draw_date(id: Annotated[int, 'Denomination id.']):
     """Retrieve draw date"""
@@ -210,8 +208,8 @@ def search_by_denomination():
 
 @bond.get("/result")
 @response(WinnerSchema(many=True))
-def retrieveResultsList():
-    """Retrieve all of the result lists"""
+def winning_listing():
+    """Retrieve all winning lists"""
     response = []
     winners = WinningBond.query.limit(50)
     for winner in winners:
@@ -219,9 +217,25 @@ def retrieveResultsList():
     return response
 
 
+@bond.get("/result/<int:denomination_id>/<int:draw_date_id>")
+@response(WinnerSchema(many=True))
+def winning_listing_by_denomination(
+        denomination_id: Annotated[int, 'Denomination id.'],
+        draw_date_id: Annotated[int, "Draw date id"]):
+    """Retrieve winning listing by denomination and draw date id"""
+    response = []
+    listing = UpdatedLists.query.filter_by(
+        denomination_id=denomination_id, date_id=draw_date_id).first()
+    if listing:
+        winners = listing.date.winningbond.all()
+        for winner in winners:
+            response.append(make_search_response(winner))
+    return response
+
+
 @bond.get("/winners")
 @response(LatestResultSchema(many=True))
-def retreiveLatestWinners():
+def retreive_latest_winners():
     """Retrieve latest result listings"""
     response = []
     denominations = Denomination.query.all()
