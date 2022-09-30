@@ -21,7 +21,7 @@ def make_search_response(winner):
 def make_latest_result_response(listing):
     return {
         "denomination": listing.price,
-        "draw_date": listing.date.date,
+        "draw_date": listing.date,
         "first": listing.first(),
         "second": listing.second()
     }

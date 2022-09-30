@@ -87,7 +87,7 @@ def add_range(args):
 @bond.delete("/bond/<int:id>")
 @authenticate(token_auth)
 @other_responses({403: 'Not allowed to deleted this bond'})
-def remove(id):
+def remove(id: Annotated[int, "The id of the bond to delete."]):
     """Remove bond"""
     user = token_auth.current_user()
     bond = Bond.query.filter_by(id=id).first_or_404()

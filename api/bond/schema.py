@@ -137,7 +137,7 @@ class LatestResultSchema(ma.Schema):
     class Meta:
         ordered = True
         description = "Represents the attributes of the Latest Result object"
-    denomination = fields.String()
-    draw_date = fields.Date()
+    denomination = fields.Nested(DenominationSchema)
+    draw_date = fields.Nested(DrawDateSchema)
     first = fields.String()
     second = fields.List(fields.String())

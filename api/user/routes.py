@@ -1,6 +1,6 @@
 from api.user import user
-from api.models import User, Bond, Denomination
-from apifairy import authenticate, body, response, other_responses
+from api.models import User, Denomination
+from apifairy import authenticate, body, response
 from api import db
 from api.user.schema import UserSchema, UpdateUserSchema
 from api.user.utils import make_bond_info_response
@@ -34,7 +34,7 @@ def all():
 @response(UserSchema)
 def get(id: Annotated[int, 'The id of the user to retrieve.']):
     """Retrieve user by id"""
-    return User.query.get(404) or abort(404)
+    return User.query.get(id) or abort(404)
 
 
 @user.get("/user/bonds")
@@ -49,7 +49,7 @@ def bonds():
 @user.get("/user/bonds/<int:id>")
 @authenticate(token_auth)
 @response(ReturnBondSchema(many=True))
-def bonds_by_denomination(id: Annotated[int, 'Denomination id.']):
+def bonds_by_denomination(id: Annotated[int, 'Denomination id']):
     """Retrieve user bonds by denomination id"""
     user = token_auth.current_user()
     denomination = Denomination.query.get_or_404(id)
@@ -80,7 +80,7 @@ def me():
 @body(UpdateUserSchema)
 @response(UserSchema)
 def put(args):
-    """Update your info"""
+    """Update user info"""
     email = args.get("email")
     password = args.get("password")
     name = args.get("name")
