@@ -91,5 +91,5 @@ def put(args):
         user.name = name
     if password:
         user.password = password
-    db.sesion.commit()
+    db.session.commit()
     return user
