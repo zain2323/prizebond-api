@@ -23,7 +23,10 @@ class UserSchema(ma.Schema):
     name = fields.String(required=True,
                          validate=[validate.Length(max=64), validate_name])
     email = fields.Email(required=True,
-                         validate=[validate.Length(max=120), validate.Email(), validate_email])
+                         validate=[
+                             validate.Length(
+                                 max=120), validate.Email(), validate_email
+                         ])
     password = fields.String(required=True,
                              validate=validate.Length(min=8), load_only=True)
     registered_at = fields.DateTime(dump_only=True)
@@ -33,13 +36,28 @@ class UserSchema(ma.Schema):
 class UpdateUserSchema(ma.Schema):
     class Meta:
         ordered = True
-        description = "Represents the possible number attributes when updating the user"
-    name = fields.String(load_default=None, validate=[validate.Length(max=64), validate_name])
+        description = """
+        Represents the possible number attributes when updating the user"""
+    name = fields.String(load_default=None, validate=[
+                         validate.Length(max=64), validate_name])
     email = fields.Email(load_default=None, validate=[validate.Length(max=120),
-                                   validate.Email(), validate_email])
-    password = fields.String(load_default=None, validate=validate.Length(min=8))
+                                                      validate.Email(),
+                                                      validate_email])
+    password = fields.String(
+        load_default=None, validate=validate.Length(min=8))
 
     @validates_schema
     def validate_field_presence(self, data, **kwargs):
         if not (data["name"] or data["email"] or data["password"]):
             raise ValidationError("Not all of the fields can be None")
+
+
+class NotificationSchema(ma.Schema):
+    class Meta:
+        ordered = True,
+        description = "Represents the attributes of the Notification object"
+    id = fields.Integer()
+    name = fields.String()
+    user = fields.Nested(UserSchema())
+    timestamp = fields.String()
+    payload = fields.String()

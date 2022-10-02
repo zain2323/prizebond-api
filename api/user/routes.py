@@ -1,12 +1,13 @@
 from api.user import user
-from api.models import User, Denomination
+from api.models import User, Denomination, Notification
 from apifairy import authenticate, body, response
 from api import db
-from api.user.schema import UserSchema, UpdateUserSchema
+from api.user.schema import UserSchema, UpdateUserSchema, NotificationSchema
 from api.user.utils import make_bond_info_response
 from api.auth.authentication import token_auth
 from typing import Annotated
-from api.bond.schema import ReturnBondSchema, BondInfoSchema
+from api.bond.schema import (
+    ReturnBondSchema, BondInfoSchema)
 from flask import abort
 
 
@@ -93,3 +94,14 @@ def put(args):
         user.password = password
     db.session.commit()
     return user
+
+
+@user.get("/notifications")
+@authenticate(token_auth)
+@response(NotificationSchema(many=True))
+def notifications():
+    "Retrieve user notifications"
+    user = token_auth.current_user()
+    notifications = user.notifications.order_by(
+        Notification.timestamp.asc()).all()
+    return notifications

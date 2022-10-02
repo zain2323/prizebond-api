@@ -258,6 +258,33 @@ class WinningBondView(GenericView):
         return final_serial_list
 
 
+class UpdatedListsView(GenericView):
+    def update_model(self, form, model):
+        try:
+            form.populate_obj(model)
+            self._on_model_change(form, model, False)
+            self.session.commit()
+        except Exception as ex:
+            if not self.handle_view_exception(ex):
+                flash('Failed to update record.', 'error')
+
+            self.session.rollback()
+
+            return False
+        else:
+            print("UPDTAED", model.uploaded)
+            if model.uploaded:
+                users = User.query.all()
+                payload = {"date": str(model.date.date),
+                           "price": model.price.price}
+                for user in users:
+                    user.add_notification("Result announced", payload)
+                db.session.commit()
+            self.after_model_change(form, model, False)
+
+        return True
+
+
 admin.add_view(UserView(User, db.session, endpoint="users"))
 admin.add_view(DenominationView(
     Denomination, db.session, endpoint="denomination"))
@@ -267,6 +294,7 @@ admin.add_view(WinningBondView(WinningBond, db.session))
 admin.add_view(GenericView(DrawDate, db.session, name="Date"))
 admin.add_view(GenericView(DrawLocation, db.session, name="Cities"))
 admin.add_view(GenericView(DrawNumber, db.session, name="Draw Number"))
-admin.add_view(GenericView(UpdatedLists, db.session, name="Updated Records"))
+admin.add_view(UpdatedListsView(
+    UpdatedLists, db.session, name="Updated Records"))
 admin.add_view(RoleView(Role, db.session))
 admin.add_view(LogoutView(name="Logout", endpoint="logout"))

@@ -5,6 +5,8 @@ import jwt
 import secrets
 from flask import current_app as app
 from flask_login.mixins import UserMixin
+from time import time
+import json
 
 
 userbond = db.Table(
@@ -128,7 +130,7 @@ class UpdatedLists(db.Model):
     def third(self):
         price = self.price
         winners = self.date.winningbond.\
-            filter(WinningBond.prize == price.third()).all().bonds
+            filter(WinningBond.prize == price.third()).all()
         return [winner.bonds for winner in winners]
 
     @staticmethod
@@ -258,6 +260,8 @@ class User(db.Model, UserMixin):
         secondaryjoin=(userbond.c.bond_id == Bond.id),
         backref=db.backref("user", lazy='dynamic'),
         lazy='dynamic', cascade="all, delete")
+    notifications = db.relationship(
+        "Notification", backref="user", lazy="dynamic")
 
     def __repr__(self):
         return f"Name: {self.name} Email: {self.email}"
@@ -344,3 +348,24 @@ class User(db.Model, UserMixin):
             return "Signature Expired"
         except jwt.InvalidTokenError:
             return "Invalid token"
+
+    def add_notification(self, name, data):
+        self.notifications.filter_by(name=name).delete()
+        notification = Notification(
+                name=name, payload=json.dumps(data), user=self)
+        db.session.add(notification)
+        return notification
+
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    timestamp = db.Column(db.Float, index=True, default=time)
+    payload = db.Column(db.Text)
+
+    def get_data(self):
+        return json.loads(str(self.payload))
+
+    def __repr__(self):
+        return f"Name: {self.name} Payload: {self.payload}"
