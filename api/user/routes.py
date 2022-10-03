@@ -119,3 +119,16 @@ def notifications():
             "seen_at": n.seen_at
         })
     return response
+
+
+@user.put("/notifications")
+@authenticate(token_auth)
+@body(NotificationSchema(many=True))
+def update_seen_status(args):
+    """Change notification seen status"""
+    for n in args:
+        print(n["id"])
+        notification = Notification.query.get_or_404(n["id"])
+        notification.seen = True
+    db.session.commit()
+    return {}, 204

@@ -413,7 +413,7 @@ class Notification(db.Model):
     sent_at = db.Column(db.DateTime, default=datetime.utcnow,
                         nullable=False)
 
-    @staticmethod
+    @staticmethod   
     def new(content, user):
         notification = Notification(content=content, user=user)
         db.session.add(notification)

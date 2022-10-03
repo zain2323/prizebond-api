@@ -69,4 +69,4 @@ class NotificationSchema(ma.Schema):
     description = fields.String()
     payload = fields.Nested(ResultPayloadSchema())
     seen = fields.Boolean()
-    seen_at = fields.DateTime()
+    seen_at = fields.DateTime(allow_none=True)
