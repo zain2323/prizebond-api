@@ -52,12 +52,21 @@ class UpdateUserSchema(ma.Schema):
             raise ValidationError("Not all of the fields can be None")
 
 
+class ResultPayloadSchema(ma.Schema):
+    class Meta:
+        ordered = True,
+        description = "Represents the attributes of the Notification object"
+    price = fields.String()
+    date = fields.String()
+
+
 class NotificationSchema(ma.Schema):
     class Meta:
         ordered = True,
         description = "Represents the attributes of the Notification object"
     id = fields.Integer()
     name = fields.String()
-    user = fields.Nested(UserSchema())
-    timestamp = fields.String()
-    payload = fields.String()
+    description = fields.String()
+    payload = fields.Nested(ResultPayloadSchema())
+    seen = fields.Boolean()
+    seen_at = fields.DateTime()

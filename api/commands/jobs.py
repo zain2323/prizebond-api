@@ -1,5 +1,5 @@
 from api.commands import commands
-from api.models import Role, Denomination, Prize
+from api.models import Role, Denomination, Prize, NotificationType
 from api import db
 
 
@@ -8,6 +8,8 @@ def setup_database():
     """Inserts the necessary data to to database"""
     insert_roles()
     insert_denomination()
+    insert_prize()
+    insert_notification_types()
     db.session.commit()
     print('Data inserted')
 
@@ -42,3 +44,11 @@ def insert_prize():
         second = Prize(price=denomination, prize=prize_list[1], pos=2)
         third = Prize(price=denomination, prize=prize_list[2], pos=3)
         db.session.add_all([first, second, third])
+
+
+def insert_notification_types():
+    result = NotificationType(type="result")
+    winner = NotificationType(type="winner")
+    db.session.add(result)
+    db.session.add(winner)
+    db.session.commit()

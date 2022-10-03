@@ -63,5 +63,5 @@ def register_blueprints(app):
     app.register_blueprint(user)
     app.register_blueprint(commands)
     app.register_blueprint(bond)
-    app.register_blueprint(web_admin, url_prefix="/adminpanel")
+    app.register_blueprint(web_admin, url_prefix="/admin")
     app.register_blueprint(error)

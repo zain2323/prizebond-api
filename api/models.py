@@ -5,7 +5,6 @@ import jwt
 import secrets
 from flask import current_app as app
 from flask_login.mixins import UserMixin
-from time import time
 import json
 
 
@@ -349,23 +348,76 @@ class User(db.Model, UserMixin):
         except jwt.InvalidTokenError:
             return "Invalid token"
 
-    def add_notification(self, name, data):
-        self.notifications.filter_by(name=name).delete()
-        notification = Notification(
-                name=name, payload=json.dumps(data), user=self)
-        db.session.add(notification)
+    def add_notification(self, content):
+        # self.notifications.filter_by(name=name).delete()
+        notification = Notification.new(content, self)
         return notification
 
 
-class Notification(db.Model):
+""" There will be two types of notification
+1- Results announcements
+2- Notifying the winners if we have
+
+Right now only two but the schema should be flexible
+enough to support adding new ones."""
+
+
+class NotificationType(db.Model):
+    __tablename__ = 'NotificationType'
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(32), unique=True, index=True)
+    content = db.relationship("NotificationContent",
+                              backref="type", lazy="dynamic")
+
+    def __repr__(self):
+        return f"Type: {self.type}"
+
+
+class NotificationContent(db.Model):
+    __tablename__ = 'NotificationContent'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    timestamp = db.Column(db.Float, index=True, default=time)
+    description = db.Column(db.Text)
     payload = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           nullable=False)
+    type_id = db.Column(db.Integer, db.ForeignKey("NotificationType.id"),
+                        nullable=False, default=1)
+    notification = db.relationship("Notification",
+                                   backref="content", lazy="dynamic")
 
-    def get_data(self):
+    @staticmethod
+    def new(name, description, payload, type):
+        notification_content = NotificationContent(
+            name=name, description=description, payload=json.dumps(payload),
+            type=type)
+        db.session.add(notification_content)
+        return notification_content
+
+    def get_payload(self):
         return json.loads(str(self.payload))
 
     def __repr__(self):
-        return f"Name: {self.name} Payload: {self.payload}"
+        return f"""Name: {self.name} Payload: {self.payload}
+                Description: {self.description} Type: {self.type}"""
+
+
+class Notification(db.Model):
+    __tablename__ = 'Notification'
+    id = db.Column(db.Integer, primary_key=True)
+    content_id = db.Column(db.Integer, db.ForeignKey("NotificationContent.id"),
+                           nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    seen = db.Column(db.Boolean, default=False)
+    seen_at = db.Column(db.DateTime, nullable=True)
+    sent_at = db.Column(db.DateTime, default=datetime.utcnow,
+                        nullable=False)
+
+    @staticmethod
+    def new(content, user):
+        notification = Notification(content=content, user=user)
+        db.session.add(notification)
+        return notification
+
+    def __repr__(self):
+        return f"Recipient: {self.user} Content: {self.content}"

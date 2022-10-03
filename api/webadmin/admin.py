@@ -1,6 +1,7 @@
 from api import admin_manager as admin, db
 from api.models import (User, Role, Bond, Prize, Denomination, UpdatedLists,
-                        WinningBond, DrawDate, DrawLocation, DrawNumber)
+                        WinningBond, DrawDate, DrawLocation, DrawNumber,
+                        NotificationType, NotificationContent)
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import BaseView, expose
 from flask import redirect, url_for, flash, request
@@ -272,13 +273,17 @@ class UpdatedListsView(GenericView):
 
             return False
         else:
-            print("UPDTAED", model.uploaded)
             if model.uploaded:
                 users = User.query.all()
                 payload = {"date": str(model.date.date),
                            "price": model.price.price}
+                name = "Results Announced"
+                description = f"Rs.{model.price.price} denomination list updated."
+                type = NotificationType.query.filter_by(type="result").first()
+                content = NotificationContent.new(name, description, payload, type)
+                db.session.commit()
                 for user in users:
-                    user.add_notification("Result announced", payload)
+                    user.add_notification(content)
                 db.session.commit()
             self.after_model_change(form, model, False)
 

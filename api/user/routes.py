@@ -9,6 +9,7 @@ from typing import Annotated
 from api.bond.schema import (
     ReturnBondSchema, BondInfoSchema)
 from flask import abort
+import json
 
 
 @user.post("/users")
@@ -102,6 +103,19 @@ def put(args):
 def notifications():
     "Retrieve user notifications"
     user = token_auth.current_user()
-    notifications = user.notifications.order_by(
-        Notification.timestamp.asc()).all()
-    return notifications
+    notifications = user.\
+        notifications.\
+        filter(Notification.seen == False).\
+        order_by(Notification.sent_at.asc()).all()
+    response = []
+    for n in notifications:
+        payload = json.loads(n.content.payload)
+        response.append({
+            "id": n.id,
+            "name": n.content.name,
+            "description": n.content.description,
+            "payload": payload,
+            "seen": n.seen,
+            "seen_at": n.seen_at
+        })
+    return response
