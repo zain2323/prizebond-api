@@ -1,6 +1,8 @@
 from flask import redirect, url_for
 from api import create_app, db
 from api import models
+from api import socketIO
+
 
 app = create_app()
 
@@ -23,4 +25,4 @@ def index():
 
 
 if __name__ == 'main':
-    app.run(debug=True)
+    socketIO.run(app)

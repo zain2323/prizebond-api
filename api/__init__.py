@@ -8,6 +8,7 @@ from api.config import Config
 from flask_admin import Admin
 from flask_login import LoginManager
 from flask_admin.base import AdminIndexView
+from flask_socketio import SocketIO
 
 
 api_fairy = APIFairy()
@@ -19,6 +20,7 @@ admin_manager = Admin(name="FastBondAdmin")
 login_manager = LoginManager()
 login_manager.login_view = "admin.sign_in"
 login_manager.login_message_category = "info"
+socketIO = SocketIO(cors_allowed_origins="*")
 
 
 def create_app(config=Config):
@@ -37,6 +39,7 @@ def initialize_extensions(app):
     if app.config.get("USE_CORS"):
         cors.init_app(app)
     api_fairy.init_app(app)
+    socketIO.init_app(app)
     # Restricting the admin panel index route
     from flask_login import current_user
 
