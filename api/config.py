@@ -40,3 +40,21 @@ class Config:
 
     # CORS
     USE_CORS = True
+
+
+class TestConfig:
+    # Marshmallow
+    JSON_SORT_KEYS = False
+
+    # Flask options
+    SECRET_KEY = os.getenv("SECRET_KEY", "topSecret!")
+    UPLOAD_FOLDER = './api/static/user/avatars'
+    TESTING = True
+
+    # Database configuration
+    SQLALCHEMY_DATABASE_URI = 'sqlite://'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # Token configuration
+    ACCESS_TOKEN_MINUTES = int(os.environ.get('ACCESS_TOKEN_MINUTES') or '15')
+    REFRESH_TOKEN_DAYS = int(os.environ.get('REFRESH_TOKEN_DAYS') or '7')

@@ -23,9 +23,9 @@ login_manager.login_message_category = "info"
 socketIO = SocketIO(cors_allowed_origins="*")
 
 
-def create_app(config=Config):
+def create_app(config):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config)
     initialize_extensions(app)
     register_blueprints(app)
     return app

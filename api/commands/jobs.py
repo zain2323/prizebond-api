@@ -1,6 +1,13 @@
 from api.commands import commands
 from api.models import Role, Denomination, Prize, NotificationType
 from api import db
+import click
+
+
+@commands.cli.command("hello")
+@click.option("--name", default="World")
+def hello_command(name):
+    click.echo(f"Hello, {name}!")
 
 
 @commands.cli.command()
@@ -19,7 +26,10 @@ def insert_roles():
     user = Role(name="user")
     db.session.add(admin)
     db.session.add(user)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
 
 
 def insert_denomination():
@@ -38,11 +48,11 @@ def insert_prize():
     }
 
     for price in prize_dict:
-        denomination = Denomination.query.filter_by(price=int(price))
+        denomination = Denomination.query.filter_by(price=int(price)).first()
         prize_list = prize_dict.get(price)
-        first = Prize(price=denomination, prize=prize_list[0], pos=1)
-        second = Prize(price=denomination, prize=prize_list[1], pos=2)
-        third = Prize(price=denomination, prize=prize_list[2], pos=3)
+        first = Prize(price=denomination, prize=prize_list[0], position=1)
+        second = Prize(price=denomination, prize=prize_list[1], position=2)
+        third = Prize(price=denomination, prize=prize_list[2], position=3)
         db.session.add_all([first, second, third])
 
 

@@ -2,9 +2,9 @@ from flask import redirect, url_for
 from api import create_app, db
 from api import models
 from api import socketIO
+from api.config import Config
 
-
-app = create_app()
+app = create_app(Config)
 
 
 # define the shell context
