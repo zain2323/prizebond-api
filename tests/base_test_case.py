@@ -25,3 +25,10 @@ class BaseTestCase(unittest.TestCase):
     def test_app(self):
         assert self.app is not None
         assert current_app == self.app
+
+    def register_user(self, name, email, password="testing123"):
+        return self.client.post("/users", json={
+            "name": name,
+            "email": email,
+            "password": password
+        })

@@ -214,6 +214,9 @@ class Token(db.Model):
     def expire(tokens):
         for token in tokens:
             token._expire()
+        
+    def is_expired(self):
+        return self.access_expiration < datetime.utcnow()
 
     @staticmethod
     def clean():

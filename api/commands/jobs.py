@@ -2,7 +2,7 @@ from api.commands import commands
 from api.models import Role, Denomination, Prize, NotificationType
 from api import db
 import click
-
+from sqlalchemy.exc import IntegrityError
 
 @commands.cli.command("hello")
 @click.option("--name", default="World")
@@ -28,7 +28,7 @@ def insert_roles():
     db.session.add(user)
     try:
         db.session.commit()
-    except:
+    except IntegrityError:
         db.session.rollback()
 
 
