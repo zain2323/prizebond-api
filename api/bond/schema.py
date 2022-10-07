@@ -15,8 +15,8 @@ def validate_serial(value):
 class DenominationSchema(ma.Schema):
     class Meta:
         ordered = True
-        description = """This schema represents the attributes of the
-                         denomination"""
+        description = """
+        This schema represents the attributes of the denomination"""
     id = fields.Integer(dump_only=True)
     price = fields.Integer()
 
@@ -24,7 +24,8 @@ class DenominationSchema(ma.Schema):
 class BondSchema(ma.Schema):
     class Meta:
         ordered = True
-        description = "This schema represents the attributes of the bond"
+        description = """
+        This schema represents the attributes of the bond"""
     serial = fields.String(
         required=True,
         validate=[
@@ -50,8 +51,8 @@ class BondSchema(ma.Schema):
 class ReturnBondSchema(ma.Schema):
     class Meta:
         ordered = True
-        description = """This schema represents the attributes of the bond when
-                         returned"""
+        description = """
+        This schema represents the attributes of the bond when returned"""
     id = fields.Integer(dump_only=True)
     serial = fields.String()
     price = fields.Nested(DenominationSchema)
@@ -60,8 +61,8 @@ class ReturnBondSchema(ma.Schema):
 class BondRangeSchema(ma.Schema):
     class Meta:
         ordered = True
-        description = """This schema represents the attributes required when
-                         adding a new series"""
+        description = """
+        This schema represents the attributes required when adding a new series"""
     id = fields.Integer(dump_only=True)
     start = fields.String(
         required=True,
@@ -106,7 +107,8 @@ class BondRangeSchema(ma.Schema):
 class BondInfoSchema(ma.Schema):
     class Meta:
         ordered = True
-        description = "Represents the attributes of the BondInfo object"
+        description = """
+        Represents the attributes of the BondInfo object"""
     price = fields.Integer()
     total = fields.Integer()
     worth = fields.Integer()
@@ -115,7 +117,8 @@ class BondInfoSchema(ma.Schema):
 class DrawDateSchema(ma.Schema):
     class Meta:
         ordered = True
-        description = "Represents the attributes of the Draw Date object"
+        description = """
+        Represents the attributes of the Draw Date object"""
     id = fields.Integer(dump_only=True)
     date = fields.Date()
 
@@ -123,7 +126,8 @@ class DrawDateSchema(ma.Schema):
 class WinnerSchema(ma.Schema):
     class Meta:
         ordered = True
-        description = "Represents the attributes of the Winner object"
+        description = """
+        Represents the attributes of the Winner object"""
     serial = fields.String()
     denomination = fields.String()
     position = fields.String()
@@ -136,7 +140,8 @@ class WinnerSchema(ma.Schema):
 class LatestResultSchema(ma.Schema):
     class Meta:
         ordered = True
-        description = "Represents the attributes of the Latest Result object"
+        description = """
+        Represents the attributes of the Latest Result object"""
     denomination = fields.Nested(DenominationSchema)
     draw_date = fields.Nested(DrawDateSchema)
     first = fields.String()

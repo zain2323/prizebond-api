@@ -18,7 +18,8 @@ def validate_name(name):
 class UserSchema(ma.Schema):
     class Meta:
         ordered = True
-        description = "Represents the attributes of the user object"
+        description = """
+        Represents the attributes of the user object"""
     id = fields.Integer(dump_only=True)
     name = fields.String(required=True,
                          validate=[validate.Length(max=64), validate_name])
@@ -55,7 +56,8 @@ class UpdateUserSchema(ma.Schema):
 class ResultPayloadSchema(ma.Schema):
     class Meta:
         ordered = True,
-        description = "Represents the attributes of the Notification object"
+        description = """
+        Represents the attributes of the Notification object"""
     price = fields.String()
     date = fields.String()
 
@@ -63,7 +65,8 @@ class ResultPayloadSchema(ma.Schema):
 class NotificationSchema(ma.Schema):
     class Meta:
         ordered = True,
-        description = "Represents the attributes of the Notification object"
+        description = """
+        Represents the attributes of the Notification object"""
     id = fields.Integer()
     name = fields.String()
     description = fields.String()

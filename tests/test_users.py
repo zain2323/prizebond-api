@@ -39,4 +39,42 @@ class UserTests(BaseTestCase):
         })
         assert users.status_code == 200
         # Verifies that all users are returned
-        assert len(users.json) == 2
+        assert len(users.json) == 4
+
+    def test_get_user_id(self):
+        # Retrieving the token
+        token = self.client.post(
+            "/tokens", auth=("testuser1@email.com", "testing123"))
+        assert token.status_code == 200
+        access_token = token.json["access_token"]
+
+        user = self.client.get("/user/2", headers={
+            "Authorization": f"Bearer {access_token}"
+        })
+
+        assert user.status_code == 200
+        assert user.json["id"] == 2
+        assert user.json["email"] == "testuser2@email.com"
+
+    def test_update_user(self):
+        # First registering a new user
+        user = self.register_user("zain", "zain@email.com")
+        assert user.status_code == 201
+
+        # Retrieving the token
+        token = self.client.post(
+            "/tokens", auth=("zain@email.com", "testing123"))
+        assert token.status_code == 200
+        access_token = token.json["access_token"]
+
+        # Now updating the user
+        updated_user = self.client.put("/about", headers={
+            "Authorization": f"Bearer {access_token}"
+        }, json={
+            "name": "zain siddiqui",
+            "email": "zainsiddiqui@email.com"
+        })
+
+        assert updated_user.status_code == 200
+        assert updated_user.json["name"] == 'zain siddiqui'
+        assert updated_user.json["email"] == 'zainsiddiqui@email.com'

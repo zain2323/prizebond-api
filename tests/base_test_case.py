@@ -14,6 +14,13 @@ class BaseTestCase(unittest.TestCase):
         self.test_cli_runner = self.app.test_cli_runner()
         self.test_cli_runner.invoke(args="commands setup-database")
 
+        user1 = self.register_user(
+            "testuser1", "testuser1@email.com", "testing123")
+        user2 = self.register_user(
+            "testuser2", "testuser2@email.com", "testing123")
+        assert user1.status_code == 201
+        assert user2.status_code == 201
+
     def tearDown(self):
         db.drop_all()
         self.appctx.pop()
