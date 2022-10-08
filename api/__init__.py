@@ -4,7 +4,6 @@ from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
-from api.config import Config
 from flask_admin import Admin
 from flask_login import LoginManager
 from flask_admin.base import AdminIndexView
@@ -40,6 +39,7 @@ def initialize_extensions(app):
         cors.init_app(app)
     api_fairy.init_app(app)
     socketIO.init_app(app)
+
     # Restricting the admin panel index route
     from flask_login import current_user
 
