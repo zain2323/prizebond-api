@@ -62,7 +62,8 @@ class BondRangeSchema(ma.Schema):
     class Meta:
         ordered = True
         description = """
-        This schema represents the attributes required when adding a new series"""
+        This schema represents the attributes required when adding a new 
+        series"""
     id = fields.Integer(dump_only=True)
     start = fields.String(
         required=True,

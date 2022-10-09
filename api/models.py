@@ -6,6 +6,7 @@ import secrets
 from flask import current_app as app
 from flask_login.mixins import UserMixin
 import json
+from celery.result import AsyncResult
 
 
 userbond = db.Table(
@@ -214,7 +215,7 @@ class Token(db.Model):
     def expire(tokens):
         for token in tokens:
             token._expire()
-        
+
     def is_expired(self):
         return self.access_expiration < datetime.utcnow()
 
@@ -424,3 +425,17 @@ class Notification(db.Model):
 
     def __repr__(self):
         return f"Recipient: {self.user} Content: {self.content}"
+
+
+class Tasks(db.Model):
+    __tablename__ = "Tasks"
+    id = db.Column(db.String(36), primary_key=True)
+    name = db.Column(db.String(128), index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    complete = db.Column(db.Boolean, default=False, nullable=False)
+
+    def __repr__(self):
+        return f"id: {self.id} name: {self.name} complete: {self.complete}"
+
+    def get_job(self):
+        return AsyncResult(self.id, app=app.celery)

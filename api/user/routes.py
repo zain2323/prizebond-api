@@ -3,7 +3,7 @@ from api.models import User, Denomination, Notification, Token
 from apifairy import authenticate, body, response
 from api import db, socketIO
 from api.user.schema import UserSchema, UpdateUserSchema, NotificationSchema
-from api.user.utils import make_bond_info_response
+from api.user.utils import make_bond_info_response, send_confirmation_email
 from api.auth.authentication import token_auth
 from typing import Annotated
 from api.bond.schema import (
@@ -21,6 +21,7 @@ def new(args):
     user = User(**args)
     db.session.add(user)
     db.session.commit()
+    send_confirmation_email(user)
     return user
 
 

@@ -1,8 +1,10 @@
 from celery import Celery
-import random
-import time
-from api import create_app
+from api import create_app, mail
 from api.config import Config
+from api.models import User, Denomination
+from api.bond.schema import ReturnBondSchema
+from flask_mail import Message
+
 
 app = create_app(Config)
 app.app_context().push()
@@ -23,24 +25,29 @@ def make_celery(app):
 
 
 celery = make_celery(app)
+app.celery = celery
 
 
 @celery.task(bind=True)
-def long_task(self):
-    """Background task that runs a long function with progress reports."""
-    verb = ['Starting up', 'Booting', 'Repairing', 'Loading', 'Checking']
-    adjective = ['master', 'radiant', 'silent', 'harmonic', 'fast']
-    noun = ['solar array', 'particle reshaper', 'cosmic ray', 'orbiter', 'bit']
-    message = ''
-    total = random.randint(10, 50)
-    for i in range(total):
-        if not message or random.random() < 0.25:
-            message = '{0} {1} {2}...'.format(random.choice(verb),
-                                              random.choice(adjective),
-                                              random.choice(noun))
-        self.update_state(state='PROGRESS',
-                          meta={'current': i, 'total': total,
-                                'status': message})
-        time.sleep(1)
-    return {'current': 100, 'total': 100, 'status': 'Task completed!',
-            'result': 42}
+def export_bonds(self, user_id, denomination_id):
+    """Background taks that exports all of the user bonds in pdf format
+    and sends an email to the user after successful completion"""
+    user = User.query.get_or_404(user_id)
+    denomination = Denomination.query.get_or_404(denomination_id)
+    bond_schema = ReturnBondSchema(many=True)
+    for i in range(10):
+        bonds = user.get_bonds_by_denomination(denomination)
+        self.update_state(state="PROGRESS",
+                          meta={"current": i, "total": 10})
+    return {'bonds': bond_schema.dump(bonds),
+            'total': 10,
+            'status': 'Task completed!',
+            'result': len(bonds)}
+
+
+@celery.task
+def send_email(subject, sender, recipients, text_body, html_body):
+    msg = Message(subject, sender=sender, recipients=recipients)
+    msg.body = text_body
+    msg.html = html_body
+    mail.send(msg)

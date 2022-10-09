@@ -8,6 +8,7 @@ from flask_admin import Admin
 from flask_login import LoginManager
 from flask_admin.base import AdminIndexView
 from flask_socketio import SocketIO
+from flask_mail import Mail
 
 
 api_fairy = APIFairy()
@@ -20,6 +21,7 @@ login_manager = LoginManager()
 login_manager.login_view = "admin.sign_in"
 login_manager.login_message_category = "info"
 socketIO = SocketIO(cors_allowed_origins="*")
+mail = Mail()
 
 
 def create_app(config):
@@ -34,6 +36,7 @@ def initialize_extensions(app):
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
+    mail.init_app(app)
     login_manager.init_app(app)
     if app.config.get("USE_CORS"):
         cors.init_app(app)
