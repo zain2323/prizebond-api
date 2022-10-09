@@ -9,6 +9,7 @@ from flask_login import LoginManager
 from flask_admin.base import AdminIndexView
 from flask_socketio import SocketIO
 from flask_mail import Mail
+from .flask_celery import FlaskCelery
 
 
 api_fairy = APIFairy()
@@ -22,6 +23,7 @@ login_manager.login_view = "admin.sign_in"
 login_manager.login_message_category = "info"
 socketIO = SocketIO(cors_allowed_origins="*")
 mail = Mail()
+flask_celery = FlaskCelery(__name__)
 
 
 def create_app(config):
@@ -42,6 +44,7 @@ def initialize_extensions(app):
         cors.init_app(app)
     api_fairy.init_app(app)
     socketIO.init_app(app)
+    flask_celery.init_app(app)
 
     # Restricting the admin panel index route
     from flask_login import current_user
@@ -63,6 +66,7 @@ def register_blueprints(app):
     from api.bond import bond
     from api.commands import commands
     from api.webadmin import web_admin
+    from api.task import task
     from api.errors import error
 
     app.register_blueprint(auth)
@@ -70,4 +74,5 @@ def register_blueprints(app):
     app.register_blueprint(commands)
     app.register_blueprint(bond)
     app.register_blueprint(web_admin, url_prefix="/admin")
+    app.register_blueprint(task)
     app.register_blueprint(error)
