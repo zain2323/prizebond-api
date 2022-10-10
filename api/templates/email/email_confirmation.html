@@ -1,6 +1,8 @@
 <p>Dear {{ user.name }},</p>
 <p>
-    To confirm your email
+    To confirm your email click on the following link
+    
+    <a href="{{ url_for('user.confirm_email', token=token, _external=True) }}" >Click here</a>
 </p>
 
 <p>If you have not performed a sign up on FastBond wesbite then simply ignore this message.</p>

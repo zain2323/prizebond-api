@@ -3,15 +3,17 @@ from flask import current_app as app
 from werkzeug.exceptions import Forbidden
 
 
-def confirm_email_required(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not args["user"].confirmed:
-            raise Forbidden(
-                description="""You need to confirm email before you can access
-                                the website functionality.""")
-        func(*args, **kwargs)
-    return wrapper
+def confirm_email_required(token_auth):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            user = token_auth.current_user()
+            if not user.confirmed:
+                raise Forbidden(
+                    description="""You need to confirm email before you can access
+                                    the website functionality.""")
+            return func()
+        return wrapper
+    return decorator
 
 
 def production_mode(func):

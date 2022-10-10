@@ -2,6 +2,8 @@ Dear {{ user.name }},
 
 To confirm your email click on the following link:
 
+{{ url_for('user.confirm_email', token=token, _external=True) }}
+
 If you have not performed a sign up on FastBond wesbite then simply ignore this message.
 
 Sincerely,

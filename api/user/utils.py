@@ -1,6 +1,7 @@
 from api.models import Denomination
 from flask import render_template, current_app as app
-# from api.tasks import send_email
+from api.task.tasks import send_email
+from celery.utils import uuid
 
 
 def make_bond_info_response(bonds):
@@ -18,11 +19,15 @@ def make_bond_info_response(bonds):
 
 
 def send_confirmation_email(user):
+    token = user.encode_jwt_token()
     subject = "Confirm your email"
     sender = app.config["MAIL_USERNAME"]
     text_body = render_template("email/email_confirmation.txt",
-                                user=user.name)
+                                user=user, token=token)
     html_body = render_template("email/email_confirmation.html",
-                                user=user.name)
-    recipient = user.email
-    # send_email(subject, sender, recipient, text_body, html_body)
+                                user=user, token=token)
+    recipient = [user.email]
+    task = send_email.apply_async(
+        args=[subject, sender, recipient, text_body, html_body],
+        task_id="celery_task_id_email_" + uuid()
+        )

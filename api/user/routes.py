@@ -11,7 +11,7 @@ from api.bond.schema import (
 from flask import abort
 from flask_socketio import emit, ConnectionRefusedError
 import json
-
+from api.user.decorators import confirm_email_required
 
 @user.post("/users")
 @body(UserSchema)
@@ -25,9 +25,21 @@ def new(args):
     return user
 
 
+@user.put("/confirm_email/<string:token>")
+def confirm_email(token):
+    user = User.decode_jwt_token(token)
+    if not user:
+        return abort(403)
+    print(user)
+    user.confirmed = True
+    db.session.commit()
+    return {}, 204
+
+
 @user.get("/users")
 @authenticate(token_auth)
 @response(UserSchema(many=True))
+@confirm_email_required(token_auth)
 def all():
     """Retrieve all users"""
     return User.query.all()

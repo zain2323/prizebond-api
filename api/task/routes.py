@@ -13,7 +13,7 @@ def export():
     user = token_auth.current_user()
     denomination_id = 1
     task = export_bonds.apply_async(
-        args=[user.id, denomination_id], task_id="celery_task_id_" + uuid())
+        args=[user.id, denomination_id], task_id="celery_task_id_export_" + uuid())
     return jsonify({"id": task.id})
 
 

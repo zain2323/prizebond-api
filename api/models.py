@@ -324,12 +324,12 @@ class User(db.Model, UserMixin):
     def revoke_all(self):
         Token.query.filter(Token.user == self).delete()
 
-    def encode_reset_token(self):
+    def encode_jwt_token(self):
         try:
             payload = {
                 "exp": datetime.utcnow() + timedelta(days=0, seconds=3600),
-                "iat": datetime().utcnow(),
-                "reset_email": self.email
+                "iat": datetime.utcnow(),
+                "email": self.email
             }
 
             return jwt.encode(
@@ -341,11 +341,11 @@ class User(db.Model, UserMixin):
             return e
 
     @staticmethod
-    def decode_reset_token(auth_token):
+    def decode_jwt_token(auth_token):
         try:
             payload = jwt.decode(
                 auth_token, app.config.get("SECRET_KEY"), algorithms=['HS256'])
-            email = payload["reset_email"]
+            email = payload["email"]
             return User.query.filter_by(email=email).first()
         except jwt.ExpiredSignatureError:
             return "Signature Expired"
