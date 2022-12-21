@@ -1,7 +1,7 @@
 from api.user import user
 from api.models import User, Denomination, Notification, Token
 from apifairy import authenticate, body, response
-from api import db, socketIO
+from api import api_fairy, db, socketIO
 from api.user.schema import UserSchema, UpdateUserSchema, NotificationSchema
 from api.user.utils import make_bond_info_response, send_confirmation_email
 from api.auth.authentication import token_auth
@@ -13,15 +13,21 @@ from flask_socketio import emit, ConnectionRefusedError
 import json
 from api.user.decorators import confirm_email_required
 
+@api_fairy.process_apispec
+def apispec_processor(apispec):
+    """Edit API Spec."""
+    apispec['paths']["/users"]['get']["summary"] = "Retrieve all users"
+    return apispec
+
 @user.post("/users")
 @body(UserSchema)
 @response(UserSchema, 201)
-def new(args):
+def new(args, spec):
     """Register a new user"""
     user = User(**args)
     db.session.add(user)
     db.session.commit()
-    send_confirmation_email(user)
+    # send_confirmation_email(user)
     return user
 
 
@@ -30,7 +36,6 @@ def confirm_email(token):
     user = User.decode_jwt_token(token)
     if not user:
         return abort(403)
-    print(user)
     user.confirmed = True
     db.session.commit()
     return {}, 204
@@ -48,6 +53,7 @@ def all():
 @user.get("/user/<int:id>")
 @authenticate(token_auth)
 @response(UserSchema)
+
 def get(id: Annotated[int, 'The id of the user to retrieve.']):
     """Retrieve user by id"""
     return User.query.get(id) or abort(404)

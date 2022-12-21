@@ -9,8 +9,7 @@ def confirm_email_required(token_auth):
             user = token_auth.current_user()
             if not user.confirmed:
                 raise Forbidden(
-                    description="""You need to confirm email before you can access
-                                    the website functionality.""")
+                    description="""You need to confirm email before you can access the website functionality.""")
             return func()
         return wrapper
     return decorator
