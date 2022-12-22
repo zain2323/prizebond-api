@@ -3,6 +3,7 @@ from flask import render_template, current_app as app
 from api.task.tasks import send_email
 from celery.utils import uuid
 from werkzeug.exceptions import Forbidden
+from flask import current_app as app
 
 
 def make_bond_info_response(bonds):
@@ -35,7 +36,8 @@ def send_confirmation_email(user):
 
 
 def confirm_email_required(token_auth):
-    user = token_auth.current_user()
-    if not user.confirmed:
-        raise Forbidden(
-            description="""You need to confirm email before you can access the website functionality.""")
+    if not app.debug:
+        user = token_auth.current_user()
+        if not user.confirmed:
+            raise Forbidden(
+                description="""You need to confirm email before you can access the website functionality.""")

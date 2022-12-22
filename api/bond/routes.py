@@ -9,7 +9,7 @@ from api import db
 from flask import abort, request
 from typing import Annotated
 from api.bond.utils import make_search_response, make_latest_result_response
-from api.user.utils import confirm_email_required
+from api.bond.utils import confirm_email_required
 
 
 def add(user, args):

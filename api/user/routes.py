@@ -1,7 +1,7 @@
 from api.user import user
 from api.models import User, Denomination, Notification, Token
 from apifairy import authenticate, body, response
-from api import api_fairy, db, socketIO
+from api import db, socketIO
 from api.user.schema import UserSchema, UpdateUserSchema, NotificationSchema
 from api.user.utils import make_bond_info_response, send_confirmation_email, confirm_email_required
 from api.auth.authentication import token_auth
@@ -16,7 +16,7 @@ import json
 @user.post("/users")
 @body(UserSchema)
 @response(UserSchema, 201)
-def new(args, spec):
+def new(args):
     """Register a new user"""
     user = User(**args)
     db.session.add(user)

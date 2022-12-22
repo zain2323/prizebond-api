@@ -4,7 +4,7 @@ from flask import jsonify
 from api.task.tasks import export_bonds
 from celery.utils import uuid
 from api.auth.authentication import token_auth
-from api.user.utils import confirm_email_required
+from api.task.utils import confirm_email_required
 
 
 @task.post("/export/bonds")
