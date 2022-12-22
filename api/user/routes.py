@@ -3,7 +3,7 @@ from api.models import User, Denomination, Notification, Token
 from apifairy import authenticate, body, response
 from api import api_fairy, db, socketIO
 from api.user.schema import UserSchema, UpdateUserSchema, NotificationSchema
-from api.user.utils import make_bond_info_response, send_confirmation_email
+from api.user.utils import make_bond_info_response, send_confirmation_email, confirm_email_required
 from api.auth.authentication import token_auth
 from typing import Annotated
 from api.bond.schema import (
@@ -11,13 +11,7 @@ from api.bond.schema import (
 from flask import abort
 from flask_socketio import emit, ConnectionRefusedError
 import json
-from api.user.decorators import confirm_email_required
 
-@api_fairy.process_apispec
-def apispec_processor(apispec):
-    """Edit API Spec."""
-    apispec['paths']["/users"]['get']["summary"] = "Retrieve all users"
-    return apispec
 
 @user.post("/users")
 @body(UserSchema)
@@ -44,18 +38,18 @@ def confirm_email(token):
 @user.get("/users")
 @authenticate(token_auth)
 @response(UserSchema(many=True))
-@confirm_email_required(token_auth)
 def all():
     """Retrieve all users"""
+    confirm_email_required(token_auth)
     return User.query.all()
 
 
 @user.get("/user/<int:id>")
 @authenticate(token_auth)
 @response(UserSchema)
-
 def get(id: Annotated[int, 'The id of the user to retrieve.']):
     """Retrieve user by id"""
+    confirm_email_required(token_auth)
     return User.query.get(id) or abort(404)
 
 
@@ -64,6 +58,7 @@ def get(id: Annotated[int, 'The id of the user to retrieve.']):
 @response(ReturnBondSchema(many=True))
 def bonds():
     """Retrieve user bonds"""
+    confirm_email_required(token_auth)
     user = token_auth.current_user()
     return user.get_bonds()
 
@@ -73,6 +68,7 @@ def bonds():
 @response(ReturnBondSchema(many=True))
 def bonds_by_denomination(id: Annotated[int, 'Denomination id']):
     """Retrieve user bonds by denomination id"""
+    confirm_email_required(token_auth)
     user = token_auth.current_user()
     denomination = Denomination.query.get_or_404(id)
     return user.get_bonds_by_denomination(denomination)
@@ -83,6 +79,7 @@ def bonds_by_denomination(id: Annotated[int, 'Denomination id']):
 @response(BondInfoSchema(many=True))
 def bond_info():
     """Retrieve bonds info"""
+    confirm_email_required(token_auth)
     user = token_auth.current_user()
     bonds = user.bonds
     response = make_bond_info_response(bonds)
@@ -94,6 +91,7 @@ def bond_info():
 @response(UserSchema)
 def me():
     """Retrieve the authenticated user"""
+    confirm_email_required(token_auth)
     return token_auth.current_user()
 
 
@@ -103,6 +101,7 @@ def me():
 @response(UserSchema)
 def put(args):
     """Update user info"""
+    confirm_email_required(token_auth)
     email = args.get("email")
     password = args.get("password")
     name = args.get("name")
