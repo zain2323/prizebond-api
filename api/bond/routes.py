@@ -9,6 +9,7 @@ from api import db
 from flask import abort, request
 from typing import Annotated
 from api.bond.utils import make_search_response, make_latest_result_response
+from api.user.utils import confirm_email_required
 
 
 def add(user, args):
@@ -29,6 +30,7 @@ def add(user, args):
 @response(ReturnBondSchema)
 def new(args):
     """Add bond"""
+    confirm_email_required(token_auth)
     user = token_auth.current_user()
     bond = add(user, args)
     db.session.commit()
@@ -41,6 +43,7 @@ def new(args):
 @response(ReturnBondSchema(many=True))
 def add_bonds(args_list):
     """Add bonds"""
+    confirm_email_required(token_auth)
     user = token_auth.current_user()
     bonds = []
     for args in args_list:
@@ -55,6 +58,7 @@ def add_bonds(args_list):
 @response(ReturnBondSchema(many=True))
 def all():
     """Retrieve all bonds"""
+    confirm_email_required(token_auth)
     return Bond.query.all()
 
 
@@ -64,6 +68,7 @@ def all():
 @response(ReturnBondSchema(many=True))
 def add_range(args):
     """Add bond series"""
+    confirm_email_required(token_auth)
     user = token_auth.current_user()
     start = int(args["start"])
     end = int(args["end"])
@@ -89,6 +94,7 @@ def add_range(args):
 @other_responses({403: 'Not allowed to deleted this bond'})
 def remove(id: Annotated[int, "The id of the bond to delete."]):
     """Remove bond"""
+    confirm_email_required(token_auth)
     user = token_auth.current_user()
     bond = Bond.query.filter_by(id=id).first_or_404()
     if not bond.is_bond_holder(user):
@@ -104,6 +110,7 @@ def remove(id: Annotated[int, "The id of the bond to delete."]):
 @other_responses({403: 'Not allowed to deleted this bond'})
 def remove_range(args):
     """Remove bond series"""
+    confirm_email_required(token_auth)
     user = token_auth.current_user()
     start = int(args["start"])
     end = int(args["end"])
@@ -136,6 +143,7 @@ def draw_date(id: Annotated[int, 'Denomination id.']):
 @response(WinnerSchema)
 def search():
     """Check if serial is in the winning list"""
+    confirm_email_required(token_auth)
     serial = request.args.get("serial")
     price = request.args.get("price")
     date = request.args.get("date")
@@ -155,6 +163,7 @@ def search():
 @response(WinnerSchema(many=True))
 def search_all_serials():
     """Search for results"""
+    confirm_email_required(token_auth)
     price = request.args.get("price")
     date = request.args.get("date")
 
@@ -177,6 +186,7 @@ def search_all_serials():
 @response(WinnerSchema(many=True))
 def search_all():
     """Search all of your serials"""
+    confirm_email_required(token_auth)
     user = token_auth.current_user()
     bonds = user.get_bonds()
     response = []
@@ -193,6 +203,7 @@ def search_all():
 @response(WinnerSchema(many=True))
 def search_by_denomination():
     """Search all of your serials"""
+    confirm_email_required(token_auth)
     price = request.args.get("price")
     user = token_auth.current_user()
     denomination = Denomination.query.filter_by(price=price).first()
