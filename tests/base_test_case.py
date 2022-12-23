@@ -9,6 +9,7 @@ class BaseTestCase(unittest.TestCase):
         self.app = create_app(TestConfig)
         self.appctx = self.app.app_context()
         self.appctx.push()
+        self.app.debug = True
         db.create_all()
         self.client = self.app.test_client()
         self.test_cli_runner = self.app.test_cli_runner()
